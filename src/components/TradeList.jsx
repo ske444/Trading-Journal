@@ -13,7 +13,7 @@ export default function TradeList({
 }) {
   const [sortField, setSortField] = useState('entry_date');
   const [sortDirection, setSortDirection] = useState('desc');
-  const [entriesPerPage, setEntriesPerPage] = useState(100);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 

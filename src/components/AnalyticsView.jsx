@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -552,17 +552,30 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
   const winPercent = totalTradesCount > 0 ? Math.round((winsCount / totalTradesCount) * 10000) / 100 : 0;
   const lossPercent = totalTradesCount > 0 ? Math.round((lossesCount / totalTradesCount) * 10000) / 100 : 0;
 
-  // Duration Box Whisker Plot Data
-  const durationBoxData = [
-    { label: '4m 15s', min: -180, q1: -80, median: 20, q3: 120, max: 220 },
-    { label: '24m 20s', min: -320, q1: -140, median: 40, q3: 190, max: 350 },
-    { label: '1h 2m', min: -190, q1: -90, median: 50, q3: 180, max: 280 },
-    { label: '3h 11m', min: -300, q1: -150, median: 60, q3: 210, max: 410 },
-    { label: '14h 20m', min: -380, q1: -160, median: 80, q3: 310, max: 1450 },
-  ];
 
-  // Trade Duration Scatter Data
-  const scatterData = [
+
+  // Calculate Trade Duration Scatter Data from actual trades
+  const calculatedScatterData = closedTrades
+    .map((t) => {
+      if (!t.entry_date || !t.exit_date) return null;
+      const entryTime = new Date(t.entry_date).getTime();
+      const exitTime = new Date(t.exit_date).getTime();
+      if (isNaN(entryTime) || isNaN(exitTime) || exitTime < entryTime) return null;
+
+      // Duration in hours
+      const durationHours = Math.round(((exitTime - entryTime) / (1000 * 60 * 60)) * 100) / 100;
+      const pnlVal = Number(t.pnl) || 0;
+
+      return {
+        duration: durationHours,
+        pnl: Math.round(pnlVal * 100) / 100,
+        symbol: t.symbol || 'Trade',
+        id: t.id
+      };
+    })
+    .filter(Boolean);
+
+  const fallbackScatterData = [
     { duration: 0.2, pnl: -120 },
     { duration: 0.5, pnl: 210 },
     { duration: 0.8, pnl: -90 },
@@ -588,33 +601,97 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
     { duration: 24.0, pnl: -300 },
   ];
 
-  // Instrument Profit & Volume Analysis Data
-  const instrumentProfitData = DEFAULT_INSTRUMENTS.map((inst) => {
-    const instTrades = trades.filter(t => t.symbol?.toUpperCase() === inst);
-    if (instTrades.length > 0) {
-      const net = instTrades.reduce((acc, t) => acc + (t.pnl || 0), 0);
-      return { symbol: inst, profit: Math.round(net * 100) / 100 };
+  const scatterData = calculatedScatterData.length > 0 ? calculatedScatterData : fallbackScatterData;
+
+  const scatterDurations = scatterData.map(d => d.duration);
+  const maxDuration = Math.max(...scatterDurations, 1);
+  const scatterPnLs = scatterData.map(d => d.pnl);
+  const minPnL = Math.min(...scatterPnLs, 0);
+  const maxPnL = Math.max(...scatterPnLs, 0);
+
+  const pnlSpan = maxPnL - minPnL;
+  const scatterPnlPadding = Math.max(100, Math.ceil((pnlSpan || 100) * 0.1));
+  const scatterYDomain = [Math.floor(minPnL - scatterPnlPadding), Math.ceil(maxPnL + scatterPnlPadding)];
+
+  // Instrument Profit & Volume Analysis Data (Dynamically aggregated from trade data)
+  const instrumentProfitData = useMemo(() => {
+    if (trades && trades.length > 0) {
+      const symbolMap = {};
+      trades.forEach((t) => {
+        const rawSym = t.symbol?.trim();
+        if (!rawSym) return;
+        const sym = rawSym.toUpperCase();
+        const pnlVal = typeof t.pnl === 'number' ? t.pnl : parseFloat(t.pnl) || 0;
+        symbolMap[sym] = (symbolMap[sym] || 0) + pnlVal;
+      });
+
+      const keys = Object.keys(symbolMap);
+      if (keys.length > 0) {
+        return keys.map((sym) => ({
+          symbol: sym,
+          profit: Math.round(symbolMap[sym] * 100) / 100,
+        })).sort((a, b) => b.profit - a.profit);
+      }
     }
+
     const defaults = {
       USDCAD: -180, XAUUSD: -210, AUDUSD: 1240, GBPCAD: -310, USDJPY: -820,
       SPX500: -140, NZDJPY: -130, EURUSD: 110, GBPUSD: 480, USDCHF: 460,
       BTCUSD: -510, EURAUD: 1450, EURGBP: -40,
     };
-    return { symbol: inst, profit: defaults[inst] ?? 0 };
-  });
+    return DEFAULT_INSTRUMENTS.map((inst) => ({
+      symbol: inst,
+      profit: defaults[inst] ?? 0,
+    }));
+  }, [trades]);
 
-  const instrumentVolumeData = DEFAULT_INSTRUMENTS.map((inst) => {
-    const instTrades = trades.filter(t => t.symbol?.toUpperCase() === inst);
-    if (instTrades.length > 0) {
-      return { symbol: inst, volume: instTrades.length };
+  const instrumentVolumeData = useMemo(() => {
+    if (trades && trades.length > 0) {
+      const symbolMap = {};
+      trades.forEach((t) => {
+        const rawSym = t.symbol?.trim();
+        if (!rawSym) return;
+        const sym = rawSym.toUpperCase();
+        symbolMap[sym] = (symbolMap[sym] || 0) + 1;
+      });
+
+      const keys = Object.keys(symbolMap);
+      if (keys.length > 0) {
+        return keys.map((sym) => ({
+          symbol: sym,
+          volume: symbolMap[sym],
+        })).sort((a, b) => b.volume - a.volume);
+      }
     }
+
     const defaults = {
       USDCAD: 4, XAUUSD: 1, AUDUSD: 49, GBPCAD: 6, USDJPY: 11,
       SPX500: 2, NZDJPY: 1, EURUSD: 1, GBPUSD: 6, USDCHF: 1,
       BTCUSD: 1, EURAUD: 6, EURGBP: 1,
     };
-    return { symbol: inst, volume: defaults[inst] ?? 1 };
-  });
+    return DEFAULT_INSTRUMENTS.map((inst) => ({
+      symbol: inst,
+      volume: defaults[inst] ?? 1,
+    }));
+  }, [trades]);
+
+  // Dynamic Y-axis domains calculated from actual data bounds
+  const profitYDomain = useMemo(() => {
+    const profitVals = instrumentProfitData.map(d => d.profit);
+    const minVal = Math.min(...profitVals, 0);
+    const maxVal = Math.max(...profitVals, 0);
+    const span = maxVal - minVal;
+    const padding = Math.max(100, Math.ceil((span || 200) * 0.15));
+    const minDomain = Math.floor((minVal - padding) / 50) * 50;
+    const maxDomain = Math.ceil((maxVal + padding) / 50) * 50;
+    return [minDomain, maxDomain];
+  }, [instrumentProfitData]);
+
+  const volumeYDomain = useMemo(() => {
+    const volumeVals = instrumentVolumeData.map(d => d.volume);
+    const maxVal = Math.max(...volumeVals, 5);
+    return [0, Math.ceil(maxVal * 1.2)];
+  }, [instrumentVolumeData]);
 
   // Helper renderer for SVG Semi-Circle Gauges with dynamic percentage-based dot position
   const renderGauge = (valText, labelText, percentage = 50, gaugeId = 'gaugeGradient') => {
@@ -1025,59 +1102,7 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
       {/* SECTION 3: DURATION ANALYSIS (SIDE-BY-SIDE GRID) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: '20px' }}>
 
-        {/* Left: PnL Distribution by Duration */}
-        <div className="glass-card" style={{ padding: '20px', background: '#0d111a' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', margin: '0 0 16px 0' }}>
-            PnL Distribution by Duration
-          </h4>
-          <div style={{ width: '100%', height: '260px', position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={durationBoxData} margin={{ top: 20, right: 30, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                <XAxis dataKey="label" stroke="var(--text-dim)" fontSize={11} />
-                <YAxis
-                  stroke="var(--text-dim)"
-                  fontSize={11}
-                  domain={[-500, 1500]}
-                  ticks={[-500, 0, 500, 1000, 1500]}
-                  tickFormatter={(val) => `$${val.toFixed(2)}`}
-                />
-                <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
-                <Bar
-                  dataKey="max"
-                  shape={(props) => {
-                    const { x, y, width, payload } = props;
-                    const yScale = (val) => {
-                      const minVal = -500;
-                      const maxVal = 1500;
-                      const chartHeight = 200;
-                      const topOffset = 20;
-                      const ratio = (val - minVal) / (maxVal - minVal);
-                      return topOffset + (chartHeight * (1 - ratio));
-                    };
 
-                    const yMax = yScale(payload.max);
-                    const yQ3 = yScale(payload.q3);
-                    const yQ1 = yScale(payload.q1);
-                    const yMin = yScale(payload.min);
-                    const cx = x + width / 2;
-                    const boxW = 28;
-
-                    return (
-                      <g key={payload.label}>
-                        <line x1={cx} y1={yMax} x2={cx} y2={yMin} stroke="#9ca3af" strokeWidth="1.5" />
-                        <line x1={cx - 8} y1={yMax} x2={cx + 8} y2={yMax} stroke="#9ca3af" strokeWidth="1.5" />
-                        <line x1={cx - 8} y1={yMin} x2={cx + 8} y2={yMin} stroke="#9ca3af" strokeWidth="1.5" />
-                        <rect x={cx - boxW / 2} y={yQ3} width={boxW} height={Math.max(4, yQ1 - yQ3)} fill="#6ee7b7" opacity={0.85} rx={3} />
-                        <rect x={cx - boxW / 2} y={yQ1} width={boxW} height={Math.max(4, yMin - yQ1)} fill="#fca5a5" opacity={0.85} rx={3} />
-                      </g>
-                    );
-                  }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
 
         {/* Right: PnL by Trade Duration Scatter Plot */}
         <div className="glass-card" style={{ padding: '20px', background: '#0d111a' }}>
@@ -1092,12 +1117,17 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
                   type="number"
                   dataKey="duration"
                   name="Duration"
-                  unit="h"
                   stroke="var(--text-dim)"
                   fontSize={11}
-                  domain={[0, 24]}
-                  ticks={[0, 3, 6, 8, 11, 14, 17, 19, 22, 24]}
-                  tickFormatter={(val) => val === 0 ? '0s' : val === 24 ? '1d' : `${val}h`}
+                  domain={[0, Math.max(24, Math.ceil(maxDuration * 1.05))]}
+                  tickFormatter={(val) => {
+                    if (val === 0) return '0h';
+                    if (val >= 24) {
+                      const d = Math.round((val / 24) * 10) / 10;
+                      return `${d}d`;
+                    }
+                    return `${val}h`;
+                  }}
                 />
                 <YAxis
                   type="number"
@@ -1105,14 +1135,72 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
                   name="PnL"
                   stroke="var(--text-dim)"
                   fontSize={11}
-                  domain={[-500, 1500]}
-                  ticks={[-500, 0, 500, 1000, 1500]}
-                  tickFormatter={(val) => `$${val.toFixed(2)}`}
+                  domain={scatterYDomain}
+                  tickFormatter={(val) => `$${val.toFixed(0)}`}
                 />
                 <Tooltip
                   cursor={{ strokeDasharray: '3 3' }}
-                  contentStyle={{ background: '#0f172a', border: '1px solid var(--border-color)', borderRadius: '8px' }}
-                  formatter={(value, name) => [name === 'PnL' ? `$${value}` : `${value}h`, name]}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      const pnlVal = Number(data.pnl) || 0;
+                      const isProfit = pnlVal >= 0;
+                      const hrs = Number(data.duration) || 0;
+                      let formattedDuration = '';
+                      if (hrs < 1) {
+                        const mins = Math.round(hrs * 60);
+                        formattedDuration = `${Math.max(1, mins)} min${mins === 1 ? '' : 's'}`;
+                      } else if (hrs >= 24) {
+                        formattedDuration = `${(hrs / 24).toFixed(1)} days (${hrs.toFixed(1)}h)`;
+                      } else {
+                        formattedDuration = `${hrs.toFixed(1)} hours`;
+                      }
+
+                      return (
+                        <div style={{
+                          background: '#0f172a',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          borderRadius: '10px',
+                          padding: '12px 16px',
+                          boxShadow: '0 10px 25px rgba(0, 0, 0, 0.85)',
+                          minWidth: '180px',
+                          zIndex: 100
+                        }}>
+                          {data.symbol && (
+                            <div style={{
+                              fontSize: '0.85rem',
+                              fontWeight: 800,
+                              color: '#ffffff',
+                              marginBottom: '6px',
+                              paddingBottom: '4px',
+                              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <span>{data.symbol}</span>
+                              <span style={{ fontSize: '0.7rem', color: isProfit ? '#10b981' : '#f43f5e', background: isProfit ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+                                {isProfit ? 'WIN' : 'LOSS'}
+                              </span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <div style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                              <span>Trade Duration:</span>
+                              <strong style={{ color: '#ffffff' }}>{formattedDuration}</strong>
+                            </div>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 800, display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '2px' }}>
+                              <span style={{ color: '#94a3b8', fontSize: '0.78rem', fontWeight: 600 }}>Net PnL:</span>
+                              <span style={{ color: isProfit ? '#10b981' : '#f43f5e', fontFamily: 'var(--font-mono)' }}>
+                                {isProfit ? `+$${pnlVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `-$${Math.abs(pnlVal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
                 <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
                 <Scatter data={scatterData}>
@@ -1143,9 +1231,8 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
                 <YAxis
                   stroke="var(--text-dim)"
                   fontSize={11}
-                  domain={[-500, 1500]}
-                  ticks={[-500, 0, 500, 1000, 1500]}
-                  tickFormatter={(val) => `$${val.toFixed(2)}`}
+                  domain={profitYDomain}
+                  tickFormatter={(val) => val < 0 ? `-$${Math.abs(val).toFixed(2)}` : `$${val.toFixed(2)}`}
                 />
                 <Tooltip
                   cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
@@ -1180,11 +1267,12 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
                   }}
                 />
                 <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" strokeDasharray="3 3" />
-                <Bar dataKey="profit" radius={[4, 4, 0, 0]} maxBarSize={48}>
+                <Bar dataKey="profit" maxBarSize={48}>
                   {instrumentProfitData.map((entry, index) => (
                     <Cell
                       key={`inst-pnl-${index}`}
                       fill={entry.profit >= 0 ? '#10b981' : '#f43f5e'}
+                      radius={entry.profit >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4]}
                     />
                   ))}
                 </Bar>
@@ -1206,8 +1294,8 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
                 <YAxis
                   stroke="var(--text-dim)"
                   fontSize={11}
-                  domain={[0, 50]}
-                  ticks={[0, 10, 20, 30, 40, 50]}
+                  domain={volumeYDomain}
+                  allowDecimals={false}
                 />
                 <Tooltip
                   cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
