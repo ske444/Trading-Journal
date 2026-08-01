@@ -164,7 +164,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
-        animation: 'fadeIn 0.2s ease-out',
+        animation: 'fade-in 0.2s ease-out',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -175,12 +175,12 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
     >
       <div
         style={{
-          background: '#16181d',
-          border: '1px solid #282b36',
+          background: 'var(--bg-modal)',
+          border: '1px solid var(--border-color)',
           borderRadius: '16px',
           maxWidth: '640px',
           width: '100%',
-          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)',
+          boxShadow: 'var(--shadow-lg)',
           overflow: 'hidden',
           display: 'flex',
           flexDirection: 'column',
@@ -191,11 +191,11 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
         <div
           style={{
             padding: '20px 24px',
-            borderBottom: '1px solid #23262f',
+            borderBottom: '1px solid var(--border-color)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#1a1c23',
+            background: 'var(--bg-secondary)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -214,10 +214,10 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               <Upload size={20} color="#10b981" />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
                 Upload MetaTrader 5 Report
               </h2>
-              <p style={{ fontSize: '0.8rem', color: '#8b92a5', margin: 0 }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
                 Import trades using MT5 output files (.html or .xlsx)
               </p>
             </div>
@@ -231,7 +231,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
             style={{
               background: 'none',
               border: 'none',
-              color: '#8b92a5',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
               padding: '6px',
               borderRadius: '8px',
@@ -297,11 +297,11 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               onDragLeave={handleDragLeave}
               onClick={() => fileInputRef.current?.click()}
               style={{
-                border: `2px dashed ${isDragOver ? '#10b981' : '#2d313e'}`,
+                border: `2px dashed ${isDragOver ? '#10b981' : 'var(--border-color)'}`,
                 borderRadius: '14px',
                 padding: '40px 20px',
                 textAlign: 'center',
-                background: isDragOver ? 'rgba(16, 185, 129, 0.05)' : '#12141a',
+                background: isDragOver ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-card)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 display: 'flex',
@@ -324,8 +324,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                   width: '54px',
                   height: '54px',
                   borderRadius: '50%',
-                  background: '#1a1c23',
-                  border: '1px solid #2c303d',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -340,10 +340,10 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               </div>
 
               <div>
-                <p style={{ fontSize: '0.95rem', fontWeight: 700, color: '#ffffff', margin: '0 0 4px 0' }}>
+                <p style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-heading)', margin: '0 0 4px 0' }}>
                   {isLoading ? 'Processing MT5 Report...' : 'Click to select or drag & drop MT5 file'}
                 </p>
-                <p style={{ fontSize: '0.8rem', color: '#8b92a5', margin: 0 }}>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: 0 }}>
                   Supports MetaTrader 5 Trade History files: <strong>.html</strong> or <strong>.xlsx</strong>
                 </p>
               </div>
@@ -355,10 +355,10 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                   gap: '8px',
                   padding: '6px 14px',
                   borderRadius: '20px',
-                  background: '#1a1c23',
-                  border: '1px solid #282b36',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
                   fontSize: '0.75rem',
-                  color: '#9ca3af',
+                  color: 'var(--text-muted)',
                   marginTop: '8px',
                 }}
               >
@@ -371,8 +371,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               {/* Selected File Bar */}
               <div
                 style={{
-                  background: '#1a1c23',
-                  border: '1px solid #282b36',
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '10px',
                   padding: '12px 16px',
                   display: 'flex',
@@ -383,8 +383,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <FileText size={20} color="#10b981" />
                   <div>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#ffffff' }}>{file.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#8b92a5' }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-heading)' }}>{file.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                       {(file.size / 1024).toFixed(1)} KB • Parsed MT5 Output
                     </div>
                   </div>
@@ -392,11 +392,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
 
                 <button
                   onClick={handleReset}
+                  className="btn btn-secondary"
                   style={{
-                    background: '#232630',
-                    border: 'none',
-                    borderRadius: '6px',
-                    color: '#8b92a5',
                     fontSize: '0.75rem',
                     padding: '5px 10px',
                     cursor: 'pointer',
@@ -409,8 +406,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               {/* Import Destination Options */}
               <div
                 style={{
-                  background: '#12141a',
-                  border: '1px solid #23262f',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '12px',
                   padding: '16px',
                   display: 'flex',
@@ -418,7 +415,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                   gap: '12px',
                 }}
               >
-                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-heading)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <UserCheck size={16} color="#10b981" /> IMPORT DESTINATION MODE:
                 </div>
 
@@ -427,8 +424,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                   <div
                     onClick={() => setImportMode('new_account')}
                     style={{
-                      border: `1px solid ${importMode === 'new_account' ? '#10b981' : '#23262f'}`,
-                      background: importMode === 'new_account' ? 'rgba(16, 185, 129, 0.08)' : '#1a1c23',
+                      border: `1px solid ${importMode === 'new_account' ? '#10b981' : 'var(--border-color)'}`,
+                      background: importMode === 'new_account' ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-secondary)',
                       borderRadius: '10px',
                       padding: '12px',
                       cursor: 'pointer',
@@ -443,11 +440,11 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                         onChange={() => setImportMode('new_account')}
                         style={{ accentColor: '#10b981', cursor: 'pointer' }}
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
                         Import as New Account
                       </span>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: '#8b92a5', margin: 0, paddingLeft: '22px' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, paddingLeft: '22px' }}>
                       Creates a separate account tab on navbar.
                     </p>
                   </div>
@@ -456,8 +453,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                   <div
                     onClick={() => setImportMode('merge')}
                     style={{
-                      border: `1px solid ${importMode === 'merge' ? '#10b981' : '#23262f'}`,
-                      background: importMode === 'merge' ? 'rgba(16, 185, 129, 0.08)' : '#1a1c23',
+                      border: `1px solid ${importMode === 'merge' ? '#10b981' : 'var(--border-color)'}`,
+                      background: importMode === 'merge' ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-secondary)',
                       borderRadius: '10px',
                       padding: '12px',
                       cursor: 'pointer',
@@ -472,11 +469,11 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                         onChange={() => setImportMode('merge')}
                         style={{ accentColor: '#10b981', cursor: 'pointer' }}
                       />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-heading)' }}>
                         Merge with Active Data
                       </span>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: '#8b92a5', margin: 0, paddingLeft: '22px' }}>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, paddingLeft: '22px' }}>
                       Appends trades into "{activeAccount || 'Active Account'}".
                     </p>
                   </div>
@@ -485,7 +482,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                 {/* Account Name input field when creating new account */}
                 {importMode === 'new_account' && (
                   <div style={{ marginTop: '2px' }}>
-                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#8b92a5', marginBottom: '6px', display: 'block' }}>
+                    <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px', display: 'block' }}>
                       NEW ACCOUNT PROFILE NAME:
                     </label>
                     <input
@@ -496,10 +493,10 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                       style={{
                         width: '100%',
                         padding: '9px 12px',
-                        background: '#1a1c23',
-                        border: '1px solid #2e3240',
+                        background: 'var(--bg-input)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '8px',
-                        color: '#ffffff',
+                        color: 'var(--text-main)',
                         fontSize: '0.88rem',
                         fontWeight: 600,
                         outline: 'none',
@@ -513,30 +510,30 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
                 <div
                   style={{
-                    background: '#12141a',
-                    border: '1px solid #23262f',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '10px',
                     padding: '12px 14px',
                   }}
                 >
-                  <span style={{ fontSize: '0.75rem', color: '#8b92a5' }}>Total Trades</span>
-                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginTop: '2px' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Trades</span>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-heading)', marginTop: '2px' }}>
                     {previewData.totalParsed}
                   </div>
                 </div>
 
                 <div
                   style={{
-                    background: '#12141a',
-                    border: '1px solid #23262f',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '10px',
                     padding: '12px 14px',
                   }}
                 >
-                  <span style={{ fontSize: '0.75rem', color: '#8b92a5' }}>Win Rate</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Win Rate</span>
                   <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>
                     {previewData.winRate}%{' '}
-                    <span style={{ fontSize: '0.75rem', color: '#8b92a5', fontWeight: 500 }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>
                       ({previewData.winCount}W / {previewData.lossCount}L)
                     </span>
                   </div>
@@ -544,13 +541,13 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
 
                 <div
                   style={{
-                    background: '#12141a',
-                    border: '1px solid #23262f',
+                    background: 'var(--bg-card)',
+                    border: '1px solid var(--border-color)',
                     borderRadius: '10px',
                     padding: '12px 14px',
                   }}
                 >
-                  <span style={{ fontSize: '0.75rem', color: '#8b92a5' }}>Total Net PnL</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Net PnL</span>
                   <div
                     style={{
                       fontSize: '1.25rem',
@@ -566,7 +563,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
 
               {/* Sample Parsed Trades Preview List */}
               <div>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#8b92a5', marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
                   TRADE PREVIEW (FIRST 5 POSITIONS):
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '160px', overflowY: 'auto' }}>
@@ -574,8 +571,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                     <div
                       key={idx}
                       style={{
-                        background: '#12141a',
-                        border: '1px solid #23262f',
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '8px',
                         padding: '8px 12px',
                         display: 'flex',
@@ -597,8 +594,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
                         >
                           {t.side}
                         </span>
-                        <span style={{ fontWeight: 700, color: '#ffffff' }}>{t.symbol}</span>
-                        <span style={{ fontSize: '0.75rem', color: '#8b92a5' }}>
+                        <span style={{ fontWeight: 700, color: 'var(--text-heading)' }}>{t.symbol}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           Vol: {t.quantity} • {(t.exit_date || t.entry_date).split('T')[0]}
                         </span>
                       </div>
@@ -618,8 +615,8 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
         <div
           style={{
             padding: '16px 24px',
-            borderTop: '1px solid #23262f',
-            background: '#1a1c23',
+            borderTop: '1px solid var(--border-color)',
+            background: 'var(--bg-secondary)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-end',
@@ -632,7 +629,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
               onClose();
             }}
             className="btn btn-secondary"
-            style={{ fontSize: '0.85rem', padding: '8px 16px', background: '#232630', border: '1px solid #2e3240' }}
+            style={{ fontSize: '0.85rem', padding: '8px 16px' }}
           >
             Cancel
           </button>

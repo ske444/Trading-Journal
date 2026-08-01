@@ -6,6 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import db, { uploadsDir } from './db.js';
 import { parseMT5FileBuffer } from './mt5Parser.js';
+import { calculateForexPnL, isForexCategory } from '../src/utils/forex.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,20 +43,26 @@ const upload = multer({
   },
 });
 
-// Helper: Calculate PnL & Status
+// Helper: Calculate PnL & Status with Forex lot size & contract size support
 function computeTradeMetrics(trade) {
-  let { side, entry_price, exit_price, quantity = 1, status, pnl, pnl_percent } = trade;
+  let { symbol = '', asset_class = '', side, entry_price, exit_price, quantity = 1, status, pnl, pnl_percent, setup, notes } = trade;
   entry_price = parseFloat(entry_price);
-  exit_price = exit_price ? parseFloat(exit_price) : null;
+  exit_price = (exit_date_has_val(exit_price)) ? parseFloat(exit_price) : null;
   quantity = parseFloat(quantity) || 1;
 
-  if (exit_price !== null && !isNaN(exit_price)) {
-    if (side === 'LONG' || side === 'BUY') {
-      pnl = (exit_price - entry_price) * quantity;
-      pnl_percent = ((exit_price - entry_price) / entry_price) * 100;
+  if (exit_price !== null && !isNaN(exit_price) && !isNaN(entry_price) && entry_price > 0) {
+    const isLong = (side === 'LONG' || side === 'BUY');
+    const priceDiff = isLong ? (exit_price - entry_price) : (entry_price - exit_price);
+
+    // Calculate percentage change of price
+    pnl_percent = (priceDiff / entry_price) * 100;
+
+    const isMT5Import = setup === 'MT5 Import' || (notes && String(notes).includes('MT5'));
+    if (isMT5Import && pnl !== undefined && pnl !== null && !isNaN(parseFloat(pnl))) {
+      pnl = parseFloat(pnl);
     } else {
-      pnl = (entry_price - exit_price) * quantity;
-      pnl_percent = ((entry_price - exit_price) / entry_price) * 100;
+      const computed = calculateForexPnL(symbol, asset_class, side, entry_price, exit_price, quantity);
+      pnl = computed.pnl;
     }
 
     if (Math.abs(pnl) < 0.01) {
@@ -76,6 +83,10 @@ function computeTradeMetrics(trade) {
     pnl_percent: Math.round(pnl_percent * 100) / 100,
     status,
   };
+}
+
+function exit_date_has_val(val) {
+  return val !== undefined && val !== null && val !== '';
 }
 
 // REST API ENDPOINTS
@@ -126,6 +137,42 @@ app.post('/api/accounts', (req, res) => {
     });
   } catch (error) {
     console.error('Error creating account profile:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get list of unique strategies
+app.get('/api/strategies', (req, res) => {
+  try {
+    const strategies = db.getStrategies ? db.getStrategies() : [];
+    res.json(strategies);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Manually create a new strategy
+app.post('/api/strategies', (req, res) => {
+  try {
+    const { name } = req.body || {};
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Strategy name is required.' });
+    }
+
+    const trimmedName = name.trim();
+    if (trimmedName.length > 50) {
+      return res.status(400).json({ error: 'Strategy name cannot exceed 50 characters.' });
+    }
+
+    const strategies = db.addStrategy ? db.addStrategy(trimmedName) : [];
+    res.status(201).json({
+      success: true,
+      strategy: trimmedName,
+      strategies,
+      message: `Strategy "${trimmedName}" created successfully.`
+    });
+  } catch (error) {
+    console.error('Error creating strategy:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -399,6 +446,8 @@ app.post('/api/trades', upload.array('screenshots', 5), (req, res) => {
     }
 
     const computed = computeTradeMetrics({
+      symbol,
+      asset_class,
       side: side.toUpperCase(),
       entry_price,
       exit_price,
@@ -490,6 +539,8 @@ app.put('/api/trades/:id', upload.array('screenshots', 5), (req, res) => {
     } = req.body;
 
     const computed = computeTradeMetrics({
+      symbol: symbol.toUpperCase(),
+      asset_class,
       side: side.toUpperCase(),
       entry_price,
       exit_price,

@@ -64,20 +64,21 @@ export default function StatsCards({
         
         {/* 0. Account Balance Card */}
         <div style={{
-          background: 'linear-gradient(135deg, #161a23 0%, #12141a 100%)',
-          border: '1px solid rgba(16, 185, 129, 0.35)',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--profit-border)',
           borderRadius: '12px',
           padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           position: 'relative',
-          boxShadow: '0 4px 14px rgba(16, 185, 129, 0.12)'
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'background 0.3s ease, border-color 0.3s ease'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <div style={{
-                background: 'rgba(16, 185, 129, 0.15)',
+                background: 'var(--profit-bg)',
                 padding: '5px',
                 borderRadius: '8px',
                 display: 'flex',
@@ -86,7 +87,7 @@ export default function StatsCards({
               }}>
                 <Wallet size={16} color="#10b981" />
               </div>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#e5e7eb' }}>Account Balance</span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-heading)' }}>Account Balance</span>
             </div>
 
             <button
@@ -96,9 +97,9 @@ export default function StatsCards({
               }}
               title="Edit Initial Balance"
               style={{
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#9ca3af',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-muted)',
                 borderRadius: '6px',
                 padding: '4px 7px',
                 display: 'flex',
@@ -118,7 +119,7 @@ export default function StatsCards({
           <div style={{
             fontSize: '1.6rem',
             fontWeight: 800,
-            color: '#ffffff',
+            color: 'var(--text-heading)',
             fontFamily: 'var(--font-mono)',
             marginTop: '12px',
             letterSpacing: '-0.03em',
@@ -131,17 +132,17 @@ export default function StatsCards({
 
           {/* Pill breakdown & return percentage */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '14px' }}>
-            <span style={{ fontSize: '0.72rem', color: '#8c93a6', fontWeight: 600 }}>
-              Start: <strong style={{ color: '#d1d5db' }}>${initialBalance.toLocaleString('en-US')}</strong>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              Start: <strong style={{ color: 'var(--text-heading)' }}>${initialBalance.toLocaleString('en-US')}</strong>
             </span>
 
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '3px',
-              background: isBalanceProfitable ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)',
-              color: isBalanceProfitable ? '#10b981' : '#f43f5e',
-              border: `1px solid ${isBalanceProfitable ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)'}`,
+              background: isBalanceProfitable ? 'var(--profit-bg)' : 'var(--loss-bg)',
+              color: isBalanceProfitable ? 'var(--profit)' : 'var(--loss)',
+              border: `1px solid ${isBalanceProfitable ? 'var(--profit-border)' : 'var(--loss-border)'}`,
               fontSize: '0.72rem',
               fontWeight: 700,
               padding: '2px 7px',
@@ -155,24 +156,25 @@ export default function StatsCards({
 
         {/* 1. Net P&L Card */}
         <div style={{
-          background: '#16171d',
-          border: '1px solid #252833',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           position: 'relative',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'background 0.3s ease, border-color 0.3s ease'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#8c93a6' }}>Net P&L</span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#5b6173' }}>{totalTrades}</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)' }}>Net P&L</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-dim)' }}>{totalTrades}</span>
           </div>
           <div style={{
             fontSize: '1.6rem',
             fontWeight: 800,
-            color: isNetProfitable ? '#10b981' : '#f43f5e',
+            color: isNetProfitable ? 'var(--profit)' : 'var(--loss)',
             fontFamily: 'var(--font-mono)',
             marginTop: '12px',
             letterSpacing: '-0.03em'
@@ -183,19 +185,20 @@ export default function StatsCards({
 
         {/* 2. Trade win % Card */}
         <div style={{
-          background: '#16171d',
-          border: '1px solid #252833',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'background 0.3s ease, border-color 0.3s ease'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#8c93a6', marginBottom: '8px' }}>Trade win %</div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Trade win %</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
                 {winRate.toFixed(1)}%
               </div>
             </div>
@@ -207,7 +210,7 @@ export default function StatsCards({
                 <path
                   d="M 5 30 A 20 20 0 0 1 45 30"
                   fill="none"
-                  stroke="#f43f5e"
+                  stroke="var(--loss)"
                   strokeWidth="5"
                   strokeLinecap="round"
                 />
@@ -215,7 +218,7 @@ export default function StatsCards({
                 <path
                   d="M 5 30 A 20 20 0 0 1 45 30"
                   fill="none"
-                  stroke="#10b981"
+                  stroke="var(--profit)"
                   strokeWidth="5"
                   strokeDasharray={`${tradeWinArcDash} 126`}
                   strokeLinecap="round"
@@ -226,13 +229,13 @@ export default function StatsCards({
 
           {/* Pill Breakdown badges */}
           <div style={{ display: 'flex', gap: '6px', marginTop: '14px' }}>
-            <span style={{ background: '#0d281e', color: '#10b981', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: 'var(--profit-bg)', color: 'var(--profit)', border: '1px solid var(--profit-border)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
               {winsCount}
             </span>
-            <span style={{ background: '#1c2230', color: '#60a5fa', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
               {breakEvenCount}
             </span>
-            <span style={{ background: '#2c151c', color: '#f43f5e', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: 'var(--loss-bg)', color: 'var(--loss)', border: '1px solid var(--loss-border)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
               {lossesCount}
             </span>
           </div>
@@ -240,19 +243,20 @@ export default function StatsCards({
 
         {/* 3. Profit factor Card */}
         <div style={{
-          background: '#16171d',
-          border: '1px solid #252833',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'background 0.3s ease, border-color 0.3s ease'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#8c93a6', marginBottom: '8px' }}>Profit factor</div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Profit factor</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
                 {profitFactor.toFixed(2)}
               </div>
             </div>
@@ -260,13 +264,13 @@ export default function StatsCards({
             {/* SVG Donut / Ring Gauge */}
             <div style={{ width: '36px', height: '36px', position: 'relative' }}>
               <svg width="36" height="36" viewBox="0 0 40 40">
-                <circle cx="20" cy="20" r="18" fill="none" stroke="#252833" strokeWidth="4" />
+                <circle cx="20" cy="20" r="18" fill="none" stroke="var(--border-color)" strokeWidth="4" />
                 <circle
                   cx="20"
                   cy="20"
                   r="18"
                   fill="none"
-                  stroke={profitFactor >= 1.0 ? '#10b981' : '#f43f5e'}
+                  stroke={profitFactor >= 1.0 ? 'var(--profit)' : 'var(--loss)'}
                   strokeWidth="4"
                   strokeDasharray={`${donutStrokeDash} 113`}
                   strokeDashoffset="0"
@@ -281,19 +285,20 @@ export default function StatsCards({
 
         {/* 4. Day win % Card */}
         <div style={{
-          background: '#16171d',
-          border: '1px solid #252833',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'background 0.3s ease, border-color 0.3s ease'
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#8c93a6', marginBottom: '8px' }}>Day win %</div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Day win %</div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
                 {dayWinRate.toFixed(1)}%
               </div>
             </div>
@@ -304,14 +309,14 @@ export default function StatsCards({
                 <path
                   d="M 5 30 A 20 20 0 0 1 45 30"
                   fill="none"
-                  stroke="#f43f5e"
+                  stroke="var(--loss)"
                   strokeWidth="5"
                   strokeLinecap="round"
                 />
                 <path
                   d="M 5 30 A 20 20 0 0 1 45 30"
                   fill="none"
-                  stroke="#10b981"
+                  stroke="var(--profit)"
                   strokeWidth="5"
                   strokeDasharray={`${dayWinArcDash} 126`}
                   strokeLinecap="round"
@@ -322,13 +327,13 @@ export default function StatsCards({
 
           {/* Pill Breakdown badges */}
           <div style={{ display: 'flex', gap: '6px', marginTop: '14px' }}>
-            <span style={{ background: '#0d281e', color: '#10b981', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: 'var(--profit-bg)', color: 'var(--profit)', border: '1px solid var(--profit-border)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
               {winDays}
             </span>
-            <span style={{ background: '#1c2230', color: '#60a5fa', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border-color)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
               {neutralDays}
             </span>
-            <span style={{ background: '#2c151c', color: '#f43f5e', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
+            <span style={{ background: 'var(--loss-bg)', color: 'var(--loss)', border: '1px solid var(--loss-border)', fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '10px' }}>
               {lossDays}
             </span>
           </div>
@@ -336,18 +341,19 @@ export default function StatsCards({
 
         {/* 5. Avg win/loss trade Card */}
         <div style={{
-          background: '#16171d',
-          border: '1px solid #252833',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
+          boxShadow: 'var(--shadow-sm)',
+          transition: 'background 0.3s ease, border-color 0.3s ease'
         }}>
           <div>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#8c93a6', marginBottom: '8px' }}>Avg win/loss trade</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>Avg win/loss trade</div>
+            <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-mono)', letterSpacing: '-0.03em' }}>
               {riskRewardRatio ? riskRewardRatio.toFixed(2) : (avgWin && avgLoss ? (avgWin / avgLoss).toFixed(2) : '0.65')}
             </div>
           </div>
@@ -360,14 +366,14 @@ export default function StatsCards({
               overflow: 'hidden',
               display: 'flex',
               width: '100%',
-              background: '#252833'
+              background: 'var(--border-color)'
             }}>
-              <div style={{ width: `${winBarPct}%`, background: '#10b981', height: '100%' }} />
-              <div style={{ width: `${lossBarPct}%`, background: '#f43f5e', height: '100%' }} />
+              <div style={{ width: `${winBarPct}%`, background: 'var(--profit)', height: '100%' }} />
+              <div style={{ width: `${lossBarPct}%`, background: 'var(--loss)', height: '100%' }} />
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', fontWeight: 700, marginTop: '6px', fontFamily: 'var(--font-mono)' }}>
-              <span style={{ color: '#10b981' }}>${Math.round(avgWin)}</span>
-              <span style={{ color: '#f43f5e' }}>-${Math.round(avgLoss)}</span>
+              <span style={{ color: 'var(--profit)' }}>${Math.round(avgWin)}</span>
+              <span style={{ color: 'var(--loss)' }}>-${Math.round(avgLoss)}</span>
             </div>
           </div>
         </div>
@@ -381,7 +387,7 @@ export default function StatsCards({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Wallet size={18} color="#10b981" />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-heading)' }}>
                   Set Starting Balance
                 </h3>
               </div>
@@ -390,8 +396,8 @@ export default function StatsCards({
               </button>
             </div>
 
-            <p style={{ fontSize: '0.82rem', color: '#9ca3af', marginBottom: '14px' }}>
-              Enter initial starting capital for <strong style={{ color: '#ffffff' }}>"{selectedAccount}"</strong>:
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '14px' }}>
+              Enter initial starting capital for <strong style={{ color: 'var(--text-heading)' }}>"{selectedAccount}"</strong>:
             </p>
 
             <form onSubmit={(e) => {
@@ -400,7 +406,7 @@ export default function StatsCards({
               setIsEditingBalance(false);
             }}>
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#8b92a5', marginBottom: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '6px' }}>
                   INITIAL BALANCE ($)
                 </label>
                 <div style={{ position: 'relative' }}>
@@ -415,11 +421,11 @@ export default function StatsCards({
                     autoFocus
                     style={{
                       width: '100%',
-                      background: '#111215',
-                      border: '1px solid #282b36',
+                      background: 'var(--bg-input)',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '8px',
                       padding: '10px 12px 10px 28px',
-                      color: '#ffffff',
+                      color: 'var(--text-main)',
                       fontSize: '1rem',
                       fontWeight: 700,
                       outline: 'none'

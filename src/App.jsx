@@ -23,6 +23,19 @@ export default function App() {
     endDate: '',
   });
 
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('tp_theme') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('tp_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   const [selectedDateFilter, setSelectedDateFilter] = useState('');
   const [isTradeModalOpen, setIsTradeModalOpen] = useState(false);
   const [isMT5ModalOpen, setIsMT5ModalOpen] = useState(false);
@@ -234,7 +247,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#111215', color: '#f3f4f6', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-main)', color: 'var(--text-main)', display: 'flex', flexDirection: 'column', transition: 'background-color 0.3s ease, color 0.3s ease' }}>
       
       {/* Top Header with Account Selector & Page Navigation */}
       <Header
@@ -250,6 +263,8 @@ export default function App() {
         onCreateAccount={handleCreateAccount}
         trades={trades}
         hasTrades={trades.length > 0 || (stats && stats.summary && stats.summary.totalTrades > 0)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       {/* Main Container */}
@@ -327,7 +342,7 @@ export default function App() {
       )}
 
       {/* Minimal Footer */}
-      <footer style={{ borderTop: '1px solid #23262f', padding: '16px 24px', textAlign: 'center', color: '#6b7280', fontSize: '0.78rem' }}>
+      <footer style={{ borderTop: '1px solid var(--border-subtle)', padding: '16px 24px', textAlign: 'center', color: 'var(--text-dim)', fontSize: '0.78rem' }}>
         TradePulse Journal &bull; Pro Dashboard Layout Active &bull; Database Persistence Ready
       </footer>
 

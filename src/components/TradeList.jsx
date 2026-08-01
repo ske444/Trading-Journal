@@ -151,17 +151,18 @@ export default function TradeList({
 
   return (
     <div style={{
-      background: '#16171d',
-      border: '1px solid #252833',
+      background: 'var(--bg-card)',
+      border: '1px solid var(--border-color)',
       borderRadius: '16px',
       padding: '20px 24px',
-      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
+      boxShadow: 'var(--shadow-sm)',
+      transition: 'background 0.3s ease, border-color 0.3s ease'
     }}>
       
       {/* Header Controls: Search bar (left), Export & Filter (right) */}
       <div style={{
         display: 'flex',
-        justify: 'space-between',
+        justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '16px',
@@ -170,7 +171,7 @@ export default function TradeList({
         {/* Left: Search input */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, maxWidth: '420px' }}>
           <div style={{ position: 'relative', width: '100%' }}>
-            <Search size={16} color="#6b7280" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
+            <Search size={16} color="var(--text-dim)" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)' }} />
             <input
               type="text"
               placeholder="Search..."
@@ -178,11 +179,11 @@ export default function TradeList({
               onChange={(e) => handleSearchChange(e.target.value)}
               style={{
                 width: '100%',
-                background: '#121317',
-                border: '1px solid #282b38',
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border-color)',
                 borderRadius: '24px',
                 padding: '9px 16px 9px 38px',
-                color: '#ffffff',
+                color: 'var(--text-main)',
                 fontSize: '0.85rem',
                 outline: 'none',
                 transition: 'all 0.2s ease'
@@ -195,12 +196,12 @@ export default function TradeList({
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              background: '#10b98120',
-              border: '1px solid #10b98140',
+              background: 'var(--profit-bg)',
+              border: '1px solid var(--profit-border)',
               padding: '4px 10px',
               borderRadius: '16px',
               fontSize: '0.75rem',
-              color: '#10b981',
+              color: 'var(--profit)',
               whiteSpace: 'nowrap'
             }}>
               <span>Date: {selectedDateFilter}</span>
@@ -214,9 +215,9 @@ export default function TradeList({
           <button
             onClick={handleExportCSV}
             style={{
-              background: '#1f222e',
-              border: '1px solid #2d3142',
-              color: '#60a5fa',
+              background: 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              color: '#6366f1',
               borderRadius: '8px',
               padding: '8px 16px',
               fontSize: '0.82rem',
@@ -233,9 +234,9 @@ export default function TradeList({
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
             style={{
-              background: showFilterDropdown ? '#252838' : '#1f222e',
-              border: '1px solid #2d3142',
-              color: '#8b92a5',
+              background: showFilterDropdown ? 'var(--bg-card-hover)' : 'var(--bg-secondary)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-muted)',
               borderRadius: '8px',
               padding: '8px 12px',
               cursor: 'pointer',
@@ -256,18 +257,18 @@ export default function TradeList({
           display: 'flex',
           gap: '12px',
           padding: '14px',
-          background: '#121317',
+          background: 'var(--bg-input)',
           borderRadius: '10px',
           marginBottom: '16px',
-          border: '1px solid #232633',
+          border: '1px solid var(--border-color)',
           flexWrap: 'wrap'
         }}>
           <div>
-            <label style={{ fontSize: '0.72rem', color: '#8c93a6', display: 'block', marginBottom: '4px' }}>Asset Class</label>
+            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Asset Class</label>
             <select
               value={filters.asset_class || ''}
               onChange={(e) => setFilters((p) => ({ ...p, asset_class: e.target.value }))}
-              style={{ background: '#1c1e27', color: '#fff', border: '1px solid #2d3142', borderRadius: '6px', padding: '6px 10px', fontSize: '0.8rem' }}
+              style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '6px 10px', fontSize: '0.8rem' }}
             >
               <option value="">All Assets</option>
               <option value="Crypto">Crypto</option>
@@ -278,11 +279,11 @@ export default function TradeList({
           </div>
 
           <div>
-            <label style={{ fontSize: '0.72rem', color: '#8c93a6', display: 'block', marginBottom: '4px' }}>Side</label>
+            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Side</label>
             <select
               value={filters.side || ''}
               onChange={(e) => setFilters((p) => ({ ...p, side: e.target.value }))}
-              style={{ background: '#1c1e27', color: '#fff', border: '1px solid #2d3142', borderRadius: '6px', padding: '6px 10px', fontSize: '0.8rem' }}
+              style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '6px 10px', fontSize: '0.8rem' }}
             >
               <option value="">All Sides</option>
               <option value="BUY">BUY / LONG</option>
@@ -291,11 +292,11 @@ export default function TradeList({
           </div>
 
           <div>
-            <label style={{ fontSize: '0.72rem', color: '#8c93a6', display: 'block', marginBottom: '4px' }}>Status</label>
+            <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Status</label>
             <select
               value={filters.status || ''}
               onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value }))}
-              style={{ background: '#1c1e27', color: '#fff', border: '1px solid #2d3142', borderRadius: '6px', padding: '6px 10px', fontSize: '0.8rem' }}
+              style={{ background: 'var(--bg-card)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '6px', padding: '6px 10px', fontSize: '0.8rem' }}
             >
               <option value="">All Statuses</option>
               <option value="WIN">WIN</option>
@@ -309,7 +310,7 @@ export default function TradeList({
 
       {/* Main Trade History Table */}
       {paginatedTrades.length === 0 ? (
-        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#8c93a6' }}>
+        <div style={{ padding: '60px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>
           No trade entries found.
         </div>
       ) : (
@@ -317,10 +318,11 @@ export default function TradeList({
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.84rem' }}>
             <thead>
               <tr style={{
-                borderBottom: '1px solid #252833',
-                color: '#8c93a6',
+                borderBottom: '1px solid var(--border-color)',
+                color: 'var(--text-muted)',
                 fontSize: '0.75rem',
-                fontWeight: 700
+                fontWeight: 700,
+                background: 'var(--table-header-bg)'
               }}>
                 {/* Column 1: Account */}
                 <th
@@ -409,62 +411,62 @@ export default function TradeList({
                   <tr
                     key={trade.id}
                     style={{
-                      borderBottom: '1px solid #1f222e',
+                      borderBottom: '1px solid var(--border-subtle)',
                       transition: 'background-color 0.15s ease'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1a1c24'}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--table-row-hover)'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     {/* Account */}
-                    <td style={{ padding: '12px 14px', fontWeight: 700, color: '#ffffff' }}>
+                    <td style={{ padding: '12px 14px', fontWeight: 700, color: 'var(--text-heading)' }}>
                       {trade.account || '116794'}
                     </td>
 
                     {/* Order (Symbol + Buy/Sell Pill + Lot Size) */}
                     <td style={{ padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontWeight: 800, color: '#ffffff' }}>
+                        <span style={{ fontWeight: 800, color: 'var(--text-heading)' }}>
                           {trade.symbol}
                         </span>
                         <span style={{
-                          color: isBuy ? '#10b981' : '#f43f5e',
+                          color: isBuy ? 'var(--profit)' : 'var(--loss)',
                           fontSize: '0.75rem',
                           fontWeight: 700
                         }}>
                           {isBuy ? 'Buy' : 'Sell'}
                         </span>
-                        <span style={{ color: '#8c93a6', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', fontFamily: 'var(--font-mono)' }}>
                           {trade.quantity}
                         </span>
                       </div>
                     </td>
 
                     {/* Open Date */}
-                    <td style={{ padding: '12px 14px', color: '#8c93a6', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                       {formatDateDisplay(trade.entry_date)}
                     </td>
 
                     {/* Open Price */}
-                    <td style={{ padding: '12px 14px', color: '#ffffff', fontFamily: 'var(--font-mono)' }}>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
                       {trade.entry_price ? trade.entry_price.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}
                     </td>
 
                     {/* Close Date */}
-                    <td style={{ padding: '12px 14px', color: '#8c93a6', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-muted)', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
                       {formatDateDisplay(trade.exit_date)}
                     </td>
 
                     {/* Close Price */}
-                    <td style={{ padding: '12px 14px', color: '#ffffff', fontFamily: 'var(--font-mono)' }}>
+                    <td style={{ padding: '12px 14px', color: 'var(--text-main)', fontFamily: 'var(--font-mono)' }}>
                       {trade.exit_price ? trade.exit_price.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}
                     </td>
 
                     {/* P&L Amount */}
                     <td style={{ padding: '12px 14px', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
                       {trade.status === 'OPEN' ? (
-                        <span style={{ color: '#818cf8', fontSize: '0.78rem' }}>OPEN</span>
+                        <span style={{ color: '#6366f1', fontSize: '0.78rem' }}>OPEN</span>
                       ) : (
-                        <span style={{ color: isWin ? '#10b981' : isLoss ? '#f43f5e' : '#ffffff' }}>
+                        <span style={{ color: isWin ? 'var(--profit)' : isLoss ? 'var(--loss)' : 'var(--text-heading)' }}>
                           {trade.pnl >= 0 ? trade.pnl.toFixed(2) : trade.pnl.toFixed(2)}
                         </span>
                       )}
@@ -477,7 +479,7 @@ export default function TradeList({
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#60a5fa',
+                          color: '#6366f1',
                           cursor: 'pointer',
                           padding: '4px',
                           borderRadius: '6px',
@@ -505,7 +507,7 @@ export default function TradeList({
         alignItems: 'center',
         marginTop: '16px',
         fontSize: '0.78rem',
-        color: '#8c93a6',
+        color: 'var(--text-muted)',
         flexWrap: 'wrap',
         gap: '12px'
       }}>
@@ -521,9 +523,9 @@ export default function TradeList({
               setCurrentPage(1);
             }}
             style={{
-              background: '#121317',
-              color: '#8c93a6',
-              border: '1px solid #282b38',
+              background: 'var(--bg-input)',
+              color: 'var(--text-main)',
+              border: '1px solid var(--border-color)',
               borderRadius: '6px',
               padding: '2px 8px',
               fontSize: '0.75rem',
@@ -544,9 +546,9 @@ export default function TradeList({
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
             style={{
-              background: '#121317',
-              border: '1px solid #282b38',
-              color: currentPage === 1 ? '#404554' : '#ffffff',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
+              color: currentPage === 1 ? 'var(--text-dim)' : 'var(--text-main)',
               borderRadius: '6px',
               padding: '4px 8px',
               cursor: currentPage === 1 ? 'default' : 'pointer'
@@ -556,7 +558,7 @@ export default function TradeList({
           </button>
 
           <span style={{
-            background: '#6366f1',
+            background: 'var(--primary)',
             color: '#ffffff',
             borderRadius: '6px',
             padding: '4px 10px',
@@ -569,9 +571,9 @@ export default function TradeList({
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
             style={{
-              background: '#121317',
-              border: '1px solid #282b38',
-              color: currentPage === totalPages ? '#404554' : '#ffffff',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
+              color: currentPage === totalPages ? 'var(--text-dim)' : 'var(--text-main)',
               borderRadius: '6px',
               padding: '4px 8px',
               cursor: currentPage === totalPages ? 'default' : 'pointer'

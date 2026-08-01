@@ -38,6 +38,7 @@ const defaultStore = {
   nextTradeId: 15,
   nextScreenshotId: 1,
   accounts: ['Main Account'],
+  strategies: [],
   mt5Accounts: [],
   trades: initialDemoTrades,
   screenshots: [],
@@ -51,6 +52,9 @@ function loadStore() {
       if (parsed && Array.isArray(parsed.trades) && parsed.trades.length > 0) {
         if (!Array.isArray(parsed.accounts)) {
           parsed.accounts = ['Main Account'];
+        }
+        if (!Array.isArray(parsed.strategies)) {
+          parsed.strategies = [];
         }
         if (!Array.isArray(parsed.mt5Accounts)) {
           parsed.mt5Accounts = [];
@@ -302,6 +306,45 @@ const db = {
       store.mt5Accounts = store.mt5Accounts.filter((m) => m.accountName !== name);
     }
     saveStore(store);
+  },
+
+  getStrategies() {
+    store = loadStore();
+    const defaults = [
+      'Bullish Orderblock',
+      'Bearish Orderblock',
+      'Fair Value Gap (FVG)',
+      'Breakout & Retest',
+      'Trend Continuation',
+      'Mean Reversion',
+      'Double Top / Bottom',
+      'Counter Trend',
+    ];
+    const explicit = Array.isArray(store.strategies) ? store.strategies : [];
+    const tradeSetups = store.trades
+      .map((t) => (t.setup ? t.setup.trim() : ''))
+      .filter(Boolean);
+    const combined = new Set([...defaults, ...explicit, ...tradeSetups]);
+    return Array.from(combined);
+  },
+
+  addStrategy(name) {
+    store = loadStore();
+    if (!Array.isArray(store.strategies)) {
+      store.strategies = [];
+    }
+    const cleanName = name.trim();
+    if (cleanName) {
+      const existing = this.getStrategies();
+      const existsCaseInsensitive = existing.some(
+        (s) => s.toLowerCase() === cleanName.toLowerCase()
+      );
+      if (!existsCaseInsensitive) {
+        store.strategies.push(cleanName);
+        saveStore(store);
+      }
+    }
+    return this.getStrategies();
   },
 
   getMT5Accounts() {
