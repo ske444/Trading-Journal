@@ -42,20 +42,68 @@ const upload = multer({
   },
 });
 
-// Helper: Calculate PnL & Status
+// Helper: Calculate PnL & Status with Forex lot size & contract size support
 function computeTradeMetrics(trade) {
-  let { side, entry_price, exit_price, quantity = 1, status, pnl, pnl_percent } = trade;
+  let { symbol = '', asset_class = '', side, entry_price, exit_price, quantity = 1, status, pnl, pnl_percent } = trade;
   entry_price = parseFloat(entry_price);
-  exit_price = exit_price ? parseFloat(exit_price) : null;
+  exit_price = (exit_price !== undefined && exit_price !== null && exit_price !== '') ? parseFloat(exit_price) : null;
   quantity = parseFloat(quantity) || 1;
 
-  if (exit_price !== null && !isNaN(exit_price)) {
-    if (side === 'LONG' || side === 'BUY') {
-      pnl = (exit_price - entry_price) * quantity;
-      pnl_percent = ((exit_price - entry_price) / entry_price) * 100;
+  if (exit_price !== null && !isNaN(exit_price) && !isNaN(entry_price) && entry_price > 0) {
+    const isLong = (side === 'LONG' || side === 'BUY');
+    const priceDiff = isLong ? (exit_price - entry_price) : (entry_price - exit_price);
+
+    // Calculate percentage change of price
+    pnl_percent = (priceDiff / entry_price) * 100;
+
+    const symUpper = (symbol || '').toUpperCase().replace('/', '').trim();
+    const isForexCategory = (asset_class || '').toLowerCase() === 'forex' ||
+      /^(EUR|GBP|USD|JPY|AUD|CAD|CHF|NZD){2}$/.test(symUpper) ||
+      symUpper.startsWith('XAU') || symUpper.startsWith('XAG') ||
+      symUpper === 'GOLD' || symUpper === 'SILVER';
+
+    if (isForexCategory) {
+      // For Forex/Metals:
+      // If quantity is < 500, quantity is entered as Lot size (e.g., 1.0, 0.1, 0.05).
+      // If quantity is >= 500, quantity is raw unit count (e.g., 100,000 units = 1 lot).
+      let lots = quantity;
+      if (quantity >= 500) {
+        lots = quantity / 100000;
+      }
+
+      let contractSize = 100000; // default for currency pairs (1 lot = 100,000 units)
+      if (symUpper.includes('XAU') || symUpper === 'GOLD') {
+        contractSize = 100; // 1 lot = 100 oz gold
+      } else if (symUpper.includes('XAG') || symUpper === 'SILVER') {
+        contractSize = 5000; // 1 lot = 5000 oz silver
+      }
+
+      if (symUpper.endsWith('USD') || symUpper === 'GOLD' || symUpper === 'SILVER') {
+        // Pairs where USD is quote currency (EURUSD, GBPUSD, AUDUSD, NZDUSD, XAUUSD, XAGUSD)
+        pnl = priceDiff * lots * contractSize;
+      } else if (symUpper.startsWith('USD')) {
+        // Pairs where USD is base currency (USDJPY, USDCAD, USDCHF)
+        pnl = (priceDiff * lots * contractSize) / exit_price;
+      } else if (symUpper.endsWith('JPY')) {
+        // JPY Cross pairs (EURJPY, GBPJPY, AUDJPY, CADJPY, CHFJPY, NZDJPY)
+        const usdJpyEst = exit_price > 50 ? (exit_price / 1.30) : 150;
+        pnl = (priceDiff * lots * contractSize) / usdJpyEst;
+      } else if (symUpper.endsWith('GBP')) {
+        pnl = priceDiff * lots * contractSize * 1.28;
+      } else if (symUpper.endsWith('AUD')) {
+        pnl = priceDiff * lots * contractSize * 0.66;
+      } else if (symUpper.endsWith('CAD')) {
+        pnl = (priceDiff * lots * contractSize) / 1.36;
+      } else if (symUpper.endsWith('CHF')) {
+        pnl = (priceDiff * lots * contractSize) / 0.90;
+      } else if (symUpper.endsWith('NZD')) {
+        pnl = priceDiff * lots * contractSize * 0.60;
+      } else {
+        pnl = priceDiff * lots * contractSize;
+      }
     } else {
-      pnl = (entry_price - exit_price) * quantity;
-      pnl_percent = ((entry_price - exit_price) / entry_price) * 100;
+      // Non-Forex (Crypto, Stocks, Futures)
+      pnl = priceDiff * quantity;
     }
 
     if (Math.abs(pnl) < 0.01) {
@@ -126,6 +174,38 @@ app.post('/api/accounts', (req, res) => {
     });
   } catch (error) {
     console.error('Error creating account profile:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get list of unique strategies
+app.get('/api/strategies', (req, res) => {
+  try {
+    const strategies = db.getStrategies ? db.getStrategies() : [];
+    res.json(strategies);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Manually create a new strategy
+app.post('/api/strategies', (req, res) => {
+  try {
+    const { name } = req.body || {};
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Strategy name is required.' });
+    }
+
+    const trimmedName = name.trim();
+    const strategies = db.addStrategy ? db.addStrategy(trimmedName) : [];
+    res.status(201).json({
+      success: true,
+      strategy: trimmedName,
+      strategies,
+      message: `Strategy "${trimmedName}" created successfully.`
+    });
+  } catch (error) {
+    console.error('Error creating strategy:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -399,6 +479,8 @@ app.post('/api/trades', upload.array('screenshots', 5), (req, res) => {
     }
 
     const computed = computeTradeMetrics({
+      symbol,
+      asset_class,
       side: side.toUpperCase(),
       entry_price,
       exit_price,
@@ -490,6 +572,8 @@ app.put('/api/trades/:id', upload.array('screenshots', 5), (req, res) => {
     } = req.body;
 
     const computed = computeTradeMetrics({
+      symbol: symbol.toUpperCase(),
+      asset_class,
       side: side.toUpperCase(),
       entry_price,
       exit_price,

@@ -40,7 +40,7 @@ export default function TradeDetailModal({ trade, onClose, onEdit }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', fontFamily: 'var(--font-heading)' }}>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-heading)', fontFamily: 'var(--font-heading)' }}>
               {trade.symbol}
             </span>
             <span
@@ -74,7 +74,7 @@ export default function TradeDetailModal({ trade, onClose, onEdit }) {
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
           gap: '12px',
-          background: 'rgba(255, 255, 255, 0.03)',
+          background: 'var(--bg-secondary)',
           border: '1px solid var(--border-color)',
           borderRadius: '12px',
           padding: '16px',
@@ -82,14 +82,14 @@ export default function TradeDetailModal({ trade, onClose, onEdit }) {
         }}>
           <div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Entry Price</span>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#ffffff' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-heading)' }}>
               ${trade.entry_price}
             </div>
           </div>
 
           <div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Exit Price</span>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: trade.exit_price ? '#ffffff' : 'var(--text-dim)' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: trade.exit_price ? 'var(--text-heading)' : 'var(--text-dim)' }}>
               {trade.exit_price ? `$${trade.exit_price}` : 'OPEN'}
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function TradeDetailModal({ trade, onClose, onEdit }) {
 
           <div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Planned R:R</span>
-            <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#ffffff' }}>
+            <div style={{ fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-mono)', color: 'var(--text-heading)' }}>
               {rrRatio}
             </div>
           </div>

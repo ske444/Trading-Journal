@@ -48,6 +48,55 @@ export default function TradeModal({
   const [inlineAccName, setInlineAccName] = useState('');
   const [inlineAccError, setInlineAccError] = useState('');
 
+  // Inline Strategy Creation inside Trade Modal
+  const [isCreatingInlineStrategy, setIsCreatingInlineStrategy] = useState(false);
+  const [inlineStrategyName, setInlineStrategyName] = useState('');
+  const [inlineStrategyError, setInlineStrategyError] = useState('');
+
+  const DEFAULT_STRATEGIES = [
+    'Bullish Orderblock',
+    'Bearish Orderblock',
+    'Fair Value Gap (FVG)',
+    'Breakout & Retest',
+    'Trend Continuation',
+    'Mean Reversion',
+    'Double Top / Bottom',
+    'Counter Trend',
+  ];
+
+  const [customStrategies, setCustomStrategies] = useState(() => {
+    try {
+      const saved = localStorage.getItem('tp_custom_strategies');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [serverStrategies, setServerStrategies] = useState([]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch('/api/strategies')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setServerStrategies(data);
+        }
+      })
+      .catch(() => {});
+  }, [isOpen]);
+
+  const allStrategies = Array.from(
+    new Set([
+      ...DEFAULT_STRATEGIES,
+      ...serverStrategies,
+      ...customStrategies,
+      ...(tradeToEdit?.setup ? [tradeToEdit.setup] : []),
+      ...(formData.setup ? [formData.setup] : []),
+    ])
+  ).filter(Boolean);
+
   useEffect(() => {
     const currentDefault = selectedAccount && selectedAccount !== 'All Accounts'
       ? selectedAccount
@@ -100,7 +149,83 @@ export default function TradeModal({
     setIsCreatingInlineAcc(false);
     setInlineAccName('');
     setInlineAccError('');
+    setIsCreatingInlineStrategy(false);
+    setInlineStrategyName('');
+    setInlineStrategyError('');
   }, [tradeToEdit, isOpen, selectedAccount]);
+
+  // Helper to calculate live estimated PnL preview in modal
+  const getEstimatedPnL = () => {
+    const entry = parseFloat(formData.entry_price);
+    const exit = parseFloat(formData.exit_price);
+    const qty = parseFloat(formData.quantity) || 1;
+
+    if (isNaN(entry) || isNaN(exit) || entry <= 0) return null;
+
+    const isLong = formData.side === 'LONG' || formData.side === 'BUY';
+    const priceDiff = isLong ? (exit - entry) : (entry - exit);
+    const pnl_percent = ((priceDiff / entry) * 100).toFixed(2);
+
+    const symUpper = (formData.symbol || '').toUpperCase().replace('/', '').trim();
+    const isForexCategory = (formData.asset_class || '').toLowerCase() === 'forex' ||
+      /^(EUR|GBP|USD|JPY|AUD|CAD|CHF|NZD){2}$/.test(symUpper) ||
+      symUpper.startsWith('XAU') || symUpper.startsWith('XAG') ||
+      symUpper === 'GOLD' || symUpper === 'SILVER';
+
+    let pnl = 0;
+    if (isForexCategory) {
+      let lots = qty;
+      if (qty >= 500) {
+        lots = qty / 100000;
+      }
+
+      let contractSize = 100000;
+      if (symUpper.includes('XAU') || symUpper === 'GOLD') {
+        contractSize = 100;
+      } else if (symUpper.includes('XAG') || symUpper === 'SILVER') {
+        contractSize = 5000;
+      }
+
+      if (symUpper.endsWith('USD') || symUpper === 'GOLD' || symUpper === 'SILVER') {
+        pnl = priceDiff * lots * contractSize;
+      } else if (symUpper.startsWith('USD')) {
+        pnl = (priceDiff * lots * contractSize) / exit;
+      } else if (symUpper.endsWith('JPY')) {
+        const usdJpyEst = exit > 50 ? (exit / 1.30) : 150;
+        pnl = (priceDiff * lots * contractSize) / usdJpyEst;
+      } else if (symUpper.endsWith('GBP')) {
+        pnl = priceDiff * lots * contractSize * 1.28;
+      } else if (symUpper.endsWith('AUD')) {
+        pnl = priceDiff * lots * contractSize * 0.66;
+      } else if (symUpper.endsWith('CAD')) {
+        pnl = (priceDiff * lots * contractSize) / 1.36;
+      } else if (symUpper.endsWith('CHF')) {
+        pnl = (priceDiff * lots * contractSize) / 0.90;
+      } else if (symUpper.endsWith('NZD')) {
+        pnl = priceDiff * lots * contractSize * 0.60;
+      } else {
+        pnl = priceDiff * lots * contractSize;
+      }
+    } else {
+      pnl = priceDiff * qty;
+    }
+
+    const isWin = pnl > 0.005;
+    const isLoss = pnl < -0.005;
+    const formattedPnL = Math.abs(pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const sign = pnl >= 0 ? '+' : '-';
+
+    return {
+      pnl,
+      pnlText: `${sign}$${formattedPnL}`,
+      pnl_percent,
+      isWin,
+      isLoss,
+      isForexCategory
+    };
+  };
+
+  const estimatedPnL = getEstimatedPnL();
 
   if (!isOpen) return null;
 
@@ -123,10 +248,51 @@ export default function TradeModal({
     }
   };
 
+  const handleInlineCreateStrategy = async () => {
+    const trimmed = inlineStrategyName.trim();
+    if (!trimmed) {
+      setInlineStrategyError('Strategy name is required.');
+      return;
+    }
+    setInlineStrategyError('');
+
+    try {
+      const res = await fetch('/api/strategies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.strategies) {
+          setServerStrategies(data.strategies);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to save strategy to backend API:', err);
+    }
+
+    try {
+      const updated = Array.from(new Set([...customStrategies, trimmed]));
+      localStorage.setItem('tp_custom_strategies', JSON.stringify(updated));
+      setCustomStrategies(updated);
+    } catch (err) {
+      console.warn('Failed to save strategy to localStorage:', err);
+    }
+
+    setFormData((prev) => ({ ...prev, setup: trimmed }));
+    setIsCreatingInlineStrategy(false);
+    setInlineStrategyName('');
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'account' && value === '__CREATE_NEW__') {
       setIsCreatingInlineAcc(true);
+      return;
+    }
+    if (name === 'setup' && value === '__CREATE_NEW_STRATEGY__') {
+      setIsCreatingInlineStrategy(true);
       return;
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -215,7 +381,7 @@ export default function TradeModal({
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid var(--border-color)', paddingBottom: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: 0, color: 'var(--text-heading)' }}>
               {isEditing ? `Edit Trade #${tradeToEdit.id} (${tradeToEdit.symbol})` : 'Log New Trade'}
             </h2>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '4px 0 0 0' }}>
@@ -235,9 +401,9 @@ export default function TradeModal({
 
         <form onSubmit={handleSubmit}>
           {/* Target Account Profile Selector */}
-          <div className="form-group" style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '12px 14px', borderRadius: '10px', border: '1px solid #282b36', marginBottom: '16px' }}>
+          <div className="form-group" style={{ background: 'var(--bg-secondary)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0, color: '#ffffff' }}>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '6px', margin: 0, color: 'var(--text-heading)' }}>
                 <Wallet size={15} color="#10b981" />
                 Target Account Profile *
               </label>
@@ -263,7 +429,7 @@ export default function TradeModal({
             </div>
 
             {isCreatingInlineAcc ? (
-              <div style={{ background: '#121316', padding: '10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+              <div style={{ background: 'var(--bg-input)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
                 {inlineAccError && (
                   <div style={{ color: '#f43f5e', fontSize: '0.78rem', marginBottom: '6px' }}>
                     {inlineAccError}
@@ -389,7 +555,7 @@ export default function TradeModal({
           </div>
 
           {/* Row 3: Entry Price, Exit Price, Quantity */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px', marginBottom: estimatedPnL ? '12px' : '0' }}>
             <div className="form-group">
               <label className="form-label">Entry Price *</label>
               <input
@@ -418,17 +584,47 @@ export default function TradeModal({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Position Size (Qty)</label>
+              <label className="form-label">
+                Position Size {formData.asset_class === 'Forex' ? '(Lots, e.g. 1.0, 0.1)' : '(Qty / Units)'}
+              </label>
               <input
                 type="number"
                 step="any"
                 name="quantity"
                 className="form-input font-mono"
+                placeholder={formData.asset_class === 'Forex' ? 'e.g. 1.0' : '1'}
                 value={formData.quantity}
                 onChange={handleChange}
               />
             </div>
           </div>
+
+          {/* Live Estimated P&L Preview Banner when Exit Price is present */}
+          {estimatedPnL && (
+            <div style={{
+              background: estimatedPnL.isWin ? 'rgba(16, 185, 129, 0.12)' : estimatedPnL.isLoss ? 'rgba(244, 63, 94, 0.12)' : 'rgba(99, 102, 241, 0.12)',
+              border: `1px solid ${estimatedPnL.isWin ? 'rgba(16, 185, 129, 0.35)' : estimatedPnL.isLoss ? 'rgba(244, 63, 94, 0.35)' : 'rgba(99, 102, 241, 0.35)'}`,
+              borderRadius: '8px',
+              padding: '10px 14px',
+              marginBottom: '16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: '0.85rem'
+            }}>
+              <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>
+                Calculated Net P&L {estimatedPnL.isForexCategory ? `(${formData.quantity || 1} lot${(parseFloat(formData.quantity) || 1) !== 1 ? 's' : ''})` : ''}:
+              </span>
+              <span style={{
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 800,
+                fontSize: '1rem',
+                color: estimatedPnL.isWin ? 'var(--profit)' : estimatedPnL.isLoss ? 'var(--loss)' : 'var(--text-heading)'
+              }}>
+                {estimatedPnL.pnlText} ({estimatedPnL.pnl_percent}%)
+              </span>
+            </div>
+          )}
 
           {/* Row 4: Stop Loss, Take Profit, Strategy */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
@@ -459,17 +655,87 @@ export default function TradeModal({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Strategy Setup</label>
-              <select name="setup" className="form-select" value={formData.setup} onChange={handleChange}>
-                <option value="Bullish Orderblock">Bullish Orderblock</option>
-                <option value="Bearish Orderblock">Bearish Orderblock</option>
-                <option value="FVG Fill">Fair Value Gap (FVG)</option>
-                <option value="Breakout">Breakout & Retest</option>
-                <option value="Trend Continuation">Trend Continuation</option>
-                <option value="Mean Reversion">Mean Reversion</option>
-                <option value="Double Top">Double Top / Bottom</option>
-                <option value="Counter Trend">Counter Trend</option>
-              </select>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label className="form-label" style={{ marginBottom: 0 }}>Strategy Setup</label>
+                {!isCreatingInlineStrategy && (
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingInlineStrategy(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#10b981',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Plus size={13} /> Add Strategy
+                  </button>
+                )}
+              </div>
+
+              {isCreatingInlineStrategy ? (
+                <div style={{ background: 'var(--bg-input)', padding: '10px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
+                  {inlineStrategyError && (
+                    <div style={{ color: '#f43f5e', fontSize: '0.75rem', marginBottom: '6px' }}>
+                      {inlineStrategyError}
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Strategy name (e.g. SMT Divergence)"
+                    value={inlineStrategyName}
+                    onChange={(e) => setInlineStrategyName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleInlineCreateStrategy();
+                      }
+                    }}
+                    className="form-input"
+                    style={{ width: '100%', padding: '6px 10px', fontSize: '0.85rem', marginBottom: '8px' }}
+                    autoFocus
+                  />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={handleInlineCreateStrategy}
+                      className="btn btn-primary"
+                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.78rem', justifyContent: 'center' }}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setIsCreatingInlineStrategy(false); setInlineStrategyError(''); setInlineStrategyName(''); }}
+                      className="btn btn-secondary"
+                      style={{ flex: 1, padding: '6px 10px', fontSize: '0.78rem', justifyContent: 'center' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <select
+                  name="setup"
+                  className="form-select"
+                  value={formData.setup}
+                  onChange={handleChange}
+                >
+                  {allStrategies.map((strat, i) => (
+                    <option key={i} value={strat}>
+                      {strat}
+                    </option>
+                  ))}
+                  <option value="__CREATE_NEW_STRATEGY__" style={{ color: '#10b981', fontWeight: 800 }}>
+                    + Create New Strategy...
+                  </option>
+                </select>
+              )}
             </div>
           </div>
 
@@ -522,7 +788,7 @@ export default function TradeModal({
               }}
             >
               <Upload size={32} color="var(--primary)" style={{ marginBottom: '8px' }} />
-              <p style={{ fontSize: '0.9rem', fontWeight: 600, color: '#ffffff', margin: 0 }}>
+              <p style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-heading)', margin: 0 }}>
                 Click to browse or drag & drop chart images here
               </p>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: '4px 0 12px 0' }}>

@@ -115,290 +115,299 @@ export default function CalendarView({ dailyPnLMap = {}, onSelectDate }) {
       marginBottom: '24px',
       position: 'relative'
     }}>
-      
+
       {/* Main Calendar Container */}
       <div style={{
-        background: '#16171d',
-        border: '1px solid #252833',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
         borderRadius: '16px',
         padding: '20px 24px',
-        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
+        marginBottom: '24px',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'background 0.3s ease, border-color 0.3s ease'
       }}>
-        
-        {/* Navigation Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <CalendarIcon size={20} color="#10b981" />
-            <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', margin: 0 }}>
-              {new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' })}
-            </h2>
+        <div>
+          {/* Header bar: Title & Month Navigation */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <CalendarIcon size={20} color="#10b981" />
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-heading)', margin: 0 }}>
+                {new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' })}
+              </h2>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              {/* Toggle Left Column Button */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                style={{
+                  background: 'var(--bg-secondary)',
+                  border: '1px solid var(--border-color)',
+                  color: isSidebarOpen ? '#6366f1' : 'var(--text-muted)',
+                  borderRadius: '8px',
+                  padding: '6px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Toggle Weekly Summary Column"
+              >
+                <ToggleRight size={16} style={{ transform: isSidebarOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                <span>{isSidebarOpen ? 'Hide Weekly Summary' : 'Show Weekly Summary'}</span>
+              </button>
+
+              {/* Month Navigation */}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                <button
+                  onClick={handlePrevMonth}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-muted)',
+                    borderRadius: '8px',
+                    padding: '6px 10px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  onClick={handleNextMonth}
+                  style={{
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-muted)',
+                    borderRadius: '8px',
+                    padding: '6px 10px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Toggle Left Column Button */}
-            <button
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              style={{
-                background: isSidebarOpen ? '#272a38' : '#1f222e',
-                border: '1px solid #32374a',
-                color: isSidebarOpen ? '#a78bfa' : '#8b92a5',
-                borderRadius: '8px',
-                padding: '6px 12px',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease'
-              }}
-              title="Toggle Weekly Summary Column"
-            >
-              <ToggleRight size={16} style={{ transform: isSidebarOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-              <span>{isSidebarOpen ? 'Hide Weekly Summary' : 'Show Weekly Summary'}</span>
-            </button>
-
-            {/* Month Navigation */}
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <button
-                onClick={handlePrevMonth}
-                style={{
-                  background: '#1f222e',
-                  border: '1px solid #2c3040',
-                  color: '#8b92a5',
-                  borderRadius: '8px',
-                  padding: '6px 10px',
-                  cursor: 'pointer'
-                }}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button
-                onClick={handleNextMonth}
-                style={{
-                  background: '#1f222e',
-                  border: '1px solid #2c3040',
-                  color: '#8b92a5',
-                  borderRadius: '8px',
-                  padding: '6px 10px',
-                  cursor: 'pointer'
-                }}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
+          {/* Days of Week Header */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isSidebarOpen ? 'repeat(7, 1fr) 170px' : 'repeat(7, 1fr)',
+            gap: '8px',
+            marginBottom: '10px',
+            textAlign: 'center',
+            transition: 'grid-template-columns 0.2s ease'
+          }}>
+            {daysOfWeek.map((day) => (
+              <div key={day} style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-muted)', padding: '4px 0' }}>
+                {day}
+              </div>
+            ))}
+            {isSidebarOpen && (
+              <div style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: '#6366f1',
+                padding: '4px 0',
+                textAlign: 'left',
+                paddingLeft: '6px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Weekly Summary
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Days of Week Header */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: isSidebarOpen ? 'repeat(7, 1fr) 170px' : 'repeat(7, 1fr)',
-          gap: '8px',
-          marginBottom: '10px',
-          textAlign: 'center',
-          transition: 'grid-template-columns 0.2s ease'
-        }}>
-          {daysOfWeek.map((day) => (
-            <div key={day} style={{ fontSize: '0.78rem', fontWeight: 700, color: '#8c93a6', padding: '4px 0' }}>
-              {day}
-            </div>
-          ))}
-          {isSidebarOpen && (
-            <div style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: '#a78bfa',
-              padding: '4px 0',
-              textAlign: 'left',
-              paddingLeft: '6px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              Weekly Summary
-            </div>
-          )}
-        </div>
+          {/* Calendar Rows (7 Days + Parallel Week Breakdown on Right) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {weeks.map((week) => (
+              <div
+                key={week.weekNumber}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isSidebarOpen ? 'repeat(7, 1fr) 170px' : 'repeat(7, 1fr)',
+                  gap: '8px',
+                  alignItems: 'stretch'
+                }}
+              >
+                {/* 7 Days of this Week */}
+                {week.days.map((cell) => {
+                  if (cell.isEmpty) {
+                    return (
+                      <div
+                        key={cell.key}
+                        style={{
+                          minHeight: '110px',
+                          background: 'var(--bg-calendar-day)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '10px',
+                          opacity: 0.3
+                        }}
+                      />
+                    );
+                  }
 
-        {/* Calendar Rows (7 Days + Parallel Week Breakdown on Right) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {weeks.map((week) => (
-            <div
-              key={week.weekNumber}
-              style={{
-                display: 'grid',
-                gridTemplateColumns: isSidebarOpen ? 'repeat(7, 1fr) 170px' : 'repeat(7, 1fr)',
-                gap: '8px',
-                alignItems: 'stretch'
-              }}
-            >
-              {/* 7 Days of this Week */}
-              {week.days.map((cell) => {
-                if (cell.isEmpty) {
+                  const hasTrades = cell.count > 0;
+                  const isWin = cell.pnl > 0;
+                  const isLoss = cell.pnl < 0;
+
                   return (
                     <div
                       key={cell.key}
+                      onClick={() => hasTrades && onSelectDate && onSelectDate(cell.dateStr)}
                       style={{
                         minHeight: '110px',
-                        background: '#121317',
-                        border: '1px solid #1c1e27',
+                        background: hasTrades
+                          ? isWin
+                            ? 'var(--profit-bg)'
+                            : 'var(--loss-bg)'
+                          : 'var(--bg-calendar-day)',
+                        border: hasTrades
+                          ? isWin
+                            ? '1px solid var(--profit-border)'
+                            : '1px solid var(--loss-border)'
+                          : '1px solid var(--border-color)',
                         borderRadius: '10px',
-                        opacity: 0.3
+                        padding: '8px 10px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        cursor: hasTrades ? 'pointer' : 'default',
+                        position: 'relative',
+                        transition: 'transform 0.15s ease, border-color 0.15s ease, background 0.3s ease'
                       }}
-                    />
+                      onMouseEnter={(e) => {
+                        if (hasTrades) e.currentTarget.style.transform = 'scale(1.02)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (hasTrades) e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      {/* Top Row: Note icon (left) & Day number (right) */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        {cell.hasNotes ? (
+                          <FileText size={14} color={isWin ? 'var(--profit)' : isLoss ? 'var(--loss)' : 'var(--text-muted)'} />
+                        ) : (
+                          <div />
+                        )}
+                        <span style={{ fontSize: '0.8rem', fontWeight: 700, color: hasTrades ? 'var(--text-heading)' : 'var(--text-dim)' }}>
+                          {cell.dayNumber}
+                        </span>
+                      </div>
+
+                      {/* Center / Bottom PnL, Trade count & Win Rate */}
+                      {hasTrades ? (
+                        <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                          <div style={{
+                            fontSize: '1rem',
+                            fontWeight: 800,
+                            color: isWin ? 'var(--profit)' : isLoss ? 'var(--loss)' : 'var(--text-heading)',
+                            fontFamily: 'var(--font-mono)',
+                            lineHeight: '1.2'
+                          }}>
+                            {formatMoney(cell.pnl, true)}
+                          </div>
+                          <div style={{ fontSize: '0.7rem', color: isWin ? 'var(--profit)' : isLoss ? 'var(--loss)' : 'var(--text-muted)', marginTop: '2px' }}>
+                            {cell.count} trade{cell.count > 1 ? 's' : ''}
+                          </div>
+                          <div style={{ fontSize: '0.68rem', color: isWin ? 'var(--profit)' : isLoss ? 'var(--loss)' : 'var(--text-muted)', fontWeight: 600 }}>
+                            {cell.winRate.toFixed(1)}%
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ minHeight: '40px' }} />
+                      )}
+                    </div>
                   );
-                }
+                })}
 
-                const hasTrades = cell.count > 0;
-                const isWin = cell.pnl > 0;
-                const isLoss = cell.pnl < 0;
-
-                return (
+                {/* Right Side Weekly Summary Card (Parallel to Relevant Week) */}
+                {isSidebarOpen && (
                   <div
-                    key={cell.key}
-                    onClick={() => hasTrades && onSelectDate && onSelectDate(cell.dateStr)}
                     style={{
-                      minHeight: '110px',
-                      background: hasTrades
-                        ? isWin
-                          ? '#0d2d22'
-                          : '#3a171d'
-                        : '#121317',
-                      border: hasTrades
-                        ? isWin
-                          ? '1px solid #10b981'
-                          : '1px solid #f43f5e'
-                        : '1px solid #1c1e27',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border-color)',
                       borderRadius: '10px',
-                      padding: '8px 10px',
+                      padding: '10px 12px',
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
-                      cursor: hasTrades ? 'pointer' : 'default',
-                      position: 'relative',
-                      transition: 'transform 0.15s ease, border-color 0.15s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (hasTrades) e.currentTarget.style.transform = 'scale(1.02)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (hasTrades) e.currentTarget.style.transform = 'scale(1)';
+                      boxShadow: 'var(--shadow-sm)',
+                      transition: 'background 0.3s ease, border-color 0.3s ease'
                     }}
                   >
-                    {/* Top Row: Note icon (left) & Day number (right) */}
+                    {/* Top Row: Week Label & Days badge */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      {cell.hasNotes ? (
-                        <FileText size={14} color={isWin ? '#10b981' : isLoss ? '#f43f5e' : '#8c93a6'} />
-                      ) : (
-                        <div />
-                      )}
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: hasTrades ? '#ffffff' : '#4a5061' }}>
-                        {cell.dayNumber}
+                      <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-heading)' }}>
+                        {week.label}
+                      </span>
+                      <span style={{
+                        background: week.daysCount > 0 ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-card)',
+                        color: week.daysCount > 0 ? '#6366f1' : 'var(--text-dim)',
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: '10px'
+                      }}>
+                        {week.daysCount} day{week.daysCount !== 1 ? 's' : ''}
                       </span>
                     </div>
 
-                    {/* Center / Bottom PnL, Trade count & Win Rate */}
-                    {hasTrades ? (
-                      <div style={{ textAlign: 'center', marginTop: '4px' }}>
-                        <div style={{
-                          fontSize: '1rem',
-                          fontWeight: 800,
-                          color: isWin ? '#10b981' : isLoss ? '#f43f5e' : '#ffffff',
-                          fontFamily: 'var(--font-mono)',
-                          lineHeight: '1.2'
-                        }}>
-                          {formatMoney(cell.pnl, true)}
-                        </div>
-                        <div style={{ fontSize: '0.7rem', color: isWin ? '#6ee7b7' : isLoss ? '#fca5a5' : '#8c93a6', marginTop: '2px' }}>
-                          {cell.count} trade{cell.count > 1 ? 's' : ''}
-                        </div>
-                        <div style={{ fontSize: '0.68rem', color: isWin ? '#34d399' : isLoss ? '#f87171' : '#8c93a6', fontWeight: 600 }}>
-                          {cell.winRate.toFixed(1)}%
-                        </div>
+                    {/* Center: Total P&L of THAT Week ONLY */}
+                    <div style={{ marginTop: '6px', marginBottom: '6px' }}>
+                      <div style={{
+                        fontSize: '0.65rem',
+                        fontWeight: 700,
+                        color: 'var(--text-muted)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px',
+                        marginBottom: '2px'
+                      }}>
+                        Total P&L
                       </div>
-                    ) : (
-                      <div style={{ minHeight: '40px' }} />
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Right Side Weekly Summary Card (Parallel to Relevant Week) */}
-              {isSidebarOpen && (
-                <div
-                  style={{
-                    background: '#1a1d26',
-                    border: '1px solid #282c3d',
-                    borderRadius: '10px',
-                    padding: '10px 12px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justify: 'space-between',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
-                  }}
-                >
-                  {/* Top Row: Week Label & Days badge */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#ffffff' }}>
-                      {week.label}
-                    </span>
-                    <span style={{
-                      background: week.daysCount > 0 ? '#2b2342' : '#1e2029',
-                      color: week.daysCount > 0 ? '#a78bfa' : '#64748b',
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      padding: '2px 7px',
-                      borderRadius: '10px'
-                    }}>
-                      {week.daysCount} day{week.daysCount !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-
-                  {/* Center: Total P&L of THAT Week ONLY */}
-                  <div style={{ marginTop: '6px', marginBottom: '6px' }}>
-                    <div style={{
-                      fontSize: '0.65rem',
-                      fontWeight: 700,
-                      color: '#94a3b8',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      marginBottom: '2px'
-                    }}>
-                      Total P&L
+                      <div style={{
+                        fontSize: '1.15rem',
+                        fontWeight: 800,
+                        color: week.weekPnL > 0 ? 'var(--profit)' : week.weekPnL < 0 ? 'var(--loss)' : 'var(--text-muted)',
+                        fontFamily: 'var(--font-mono)',
+                        lineHeight: '1.2'
+                      }}>
+                        {formatMoney(week.weekPnL, false)}
+                      </div>
                     </div>
+
+                    {/* Bottom Row: Trades count & Win Rate */}
                     <div style={{
-                      fontSize: '1.15rem',
-                      fontWeight: 800,
-                      color: week.weekPnL > 0 ? '#10b981' : week.weekPnL < 0 ? '#f43f5e' : '#94a3b8',
-                      fontFamily: 'var(--font-mono)',
-                      lineHeight: '1.2'
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: '0.7rem',
+                      borderTop: '1px solid var(--border-color)',
+                      paddingTop: '6px',
+                      marginTop: '2px',
+                      color: 'var(--text-muted)'
                     }}>
-                      {formatMoney(week.weekPnL, false)}
+                      <span>{week.tradesCount} trade{week.tradesCount !== 1 ? 's' : ''}</span>
+                      <span style={{ fontWeight: 700, color: week.winRate >= 50 ? 'var(--profit)' : week.tradesCount > 0 ? 'var(--loss)' : 'var(--text-muted)' }}>
+                        {week.tradesCount > 0 ? `${week.winRate.toFixed(1)}% Win` : 'No Trades'}
+                      </span>
                     </div>
                   </div>
+                )}
+              </div>
+            ))}
+          </div>
 
-                  {/* Bottom Row: Trades count & Win Rate */}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    fontSize: '0.7rem',
-                    borderTop: '1px solid #232736',
-                    paddingTop: '6px',
-                    marginTop: '2px',
-                    color: '#8c93a6'
-                  }}>
-                    <span>{week.tradesCount} trade{week.tradesCount !== 1 ? 's' : ''}</span>
-                    <span style={{ fontWeight: 700, color: week.winRate >= 50 ? '#10b981' : week.tradesCount > 0 ? '#f43f5e' : '#8c93a6' }}>
-                      {week.tradesCount > 0 ? `${week.winRate.toFixed(1)}% Win` : 'No Trades'}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
         </div>
-
       </div>
     </div>
   );
