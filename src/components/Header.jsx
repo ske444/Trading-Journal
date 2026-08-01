@@ -446,7 +446,7 @@ export default function Header({
                 <div style={{ background: 'rgba(244, 63, 94, 0.15)', padding: '8px', borderRadius: '10px', display: 'flex' }}>
                   <AlertTriangle size={22} color="#f43f5e" />
                 </div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
                   Remove Account Profile
                 </h3>
               </div>
@@ -463,16 +463,16 @@ export default function Header({
               marginBottom: '20px'
             }}>
               <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#fca5a5', lineHeight: '1.5' }}>
-                Are you sure you want to remove account profile <strong style={{ color: '#ffffff', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px' }}>"{accountToDelete}"</strong>?
+                Are you sure you want to remove account profile <strong style={{ color: 'var(--text-main)', background: 'var(--bg-secondary)', padding: '2px 6px', borderRadius: '4px' }}>"{accountToDelete}"</strong>?
               </p>
 
               {(() => {
                 const stats = getAccountStats(accountToDelete);
                 return (
-                  <div style={{ display: 'flex', gap: '16px', fontSize: '0.82rem', background: '#111215', padding: '10px 12px', borderRadius: '8px', border: '1px solid #23262f' }}>
+                  <div style={{ display: 'flex', gap: '16px', fontSize: '0.82rem', background: 'var(--bg-secondary)', padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                     <div>
-                      <span style={{ color: '#8b92a5' }}>Associated Trades: </span>
-                      <strong style={{ color: '#ffffff' }}>{stats.count} trade(s)</strong>
+                      <span style={{ color: 'var(--text-muted)' }}>Associated Trades: </span>
+                      <strong style={{ color: 'var(--text-main)' }}>{stats.count} trade(s)</strong>
                     </div>
                     <div>
                       <span style={{ color: '#8b92a5' }}>Total PnL: </span>
@@ -533,7 +533,7 @@ export default function Header({
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #23262f', paddingBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Wallet size={20} color="#10b981" />
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: '#ffffff' }}>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
                   Manage Account Profiles
                 </h3>
               </div>
@@ -553,7 +553,7 @@ export default function Header({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: showCreateForm ? '12px' : 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Plus size={16} color="#10b981" />
-                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#ffffff' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)' }}>
                     Create New Account Profile
                   </span>
                 </div>
@@ -607,9 +607,9 @@ export default function Header({
                         onChange={(e) => setNewAccountName(e.target.value)}
                         style={{
                           width: '100%',
-                          background: '#121316',
-                          border: '1px solid #282b36',
-                          color: '#ffffff',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-main)',
                           borderRadius: '6px',
                           padding: '8px 10px',
                           fontSize: '0.85rem',
@@ -631,9 +631,9 @@ export default function Header({
                         onChange={(e) => setNewAccountBalance(e.target.value)}
                         style={{
                           width: '100%',
-                          background: '#121316',
-                          border: '1px solid #282b36',
-                          color: '#ffffff',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-main)',
                           borderRadius: '6px',
                           padding: '8px 10px',
                           fontSize: '0.85rem',
@@ -688,7 +688,7 @@ export default function Header({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Zap size={18} color="#818cf8" />
                   <div>
-                    <span style={{ fontWeight: 800, fontSize: '0.95rem', color: '#ffffff', display: 'block' }}>
+                    <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-main)', display: 'block' }}>
                       Connect MT5 Account Directly
                     </span>
                     <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>
@@ -767,9 +767,9 @@ export default function Header({
                         onChange={(e) => setMt5Login(e.target.value)}
                         style={{
                           width: '100%',
-                          background: '#121316',
-                          border: '1px solid #282b36',
-                          color: '#ffffff',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-main)',
                           borderRadius: '6px',
                           padding: '8px 10px',
                           fontSize: '0.85rem',
@@ -790,9 +790,9 @@ export default function Header({
                         onChange={(e) => setMt5Password(e.target.value)}
                         style={{
                           width: '100%',
-                          background: '#121316',
-                          border: '1px solid #282b36',
-                          color: '#ffffff',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-main)',
                           borderRadius: '6px',
                           padding: '8px 10px',
                           fontSize: '0.85rem',
@@ -816,9 +816,9 @@ export default function Header({
                         onChange={(e) => setMt5Server(e.target.value)}
                         style={{
                           width: '100%',
-                          background: '#121316',
-                          border: '1px solid #282b36',
-                          color: '#ffffff',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-main)',
                           borderRadius: '6px',
                           padding: '8px 10px',
                           fontSize: '0.85rem',
@@ -849,9 +849,9 @@ export default function Header({
                         onChange={(e) => setMt5AccountName(e.target.value)}
                         style={{
                           width: '100%',
-                          background: '#121316',
-                          border: '1px solid #282b36',
-                          color: '#ffffff',
+                          background: 'var(--bg-main)',
+                          border: '1px solid var(--border-color)',
+                          color: 'var(--text-main)',
                           borderRadius: '6px',
                           padding: '8px 10px',
                           fontSize: '0.85rem',
@@ -934,15 +934,15 @@ export default function Header({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      background: selectedAccount === accName ? 'rgba(16, 185, 129, 0.08)' : '#1a1c23',
-                      border: `1px solid ${selectedAccount === accName ? 'rgba(16, 185, 129, 0.4)' : '#282b36'}`,
+                      background: selectedAccount === accName ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-secondary)',
+                      border: `1px solid ${selectedAccount === accName ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-color)'}`,
                       borderRadius: '10px',
                       padding: '12px 16px'
                     }}
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ fontWeight: 800, fontSize: '0.92rem', color: '#ffffff' }}>
+                        <span style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--text-main)' }}>
                           {accName}
                         </span>
                         {isAggregate && (

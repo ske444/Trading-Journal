@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, Image as ImageIcon, Trash2, Star, CheckCircle, AlertCircle, Plus, Wallet } from 'lucide-react';
+import { calculateForexPnL, isForexCategory } from '../utils/forex.js';
 
 export default function TradeModal({
   isOpen,
@@ -52,22 +53,13 @@ export default function TradeModal({
   const [isCreatingInlineStrategy, setIsCreatingInlineStrategy] = useState(false);
   const [inlineStrategyName, setInlineStrategyName] = useState('');
   const [inlineStrategyError, setInlineStrategyError] = useState('');
-
-  const DEFAULT_STRATEGIES = [
-    'Bullish Orderblock',
-    'Bearish Orderblock',
-    'Fair Value Gap (FVG)',
-    'Breakout & Retest',
-    'Trend Continuation',
-    'Mean Reversion',
-    'Double Top / Bottom',
-    'Counter Trend',
-  ];
+  const [isSavingStrategy, setIsSavingStrategy] = useState(false);
 
   const [customStrategies, setCustomStrategies] = useState(() => {
     try {
       const saved = localStorage.getItem('tp_custom_strategies');
-      return saved ? JSON.parse(saved) : [];
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
       return [];
     }
@@ -80,7 +72,7 @@ export default function TradeModal({
     fetch('/api/strategies')
       .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data)) {
           setServerStrategies(data);
         }
       })
@@ -89,7 +81,6 @@ export default function TradeModal({
 
   const allStrategies = Array.from(
     new Set([
-      ...DEFAULT_STRATEGIES,
       ...serverStrategies,
       ...customStrategies,
       ...(tradeToEdit?.setup ? [tradeToEdit.setup] : []),
@@ -162,58 +153,15 @@ export default function TradeModal({
 
     if (isNaN(entry) || isNaN(exit) || entry <= 0) return null;
 
-    const isLong = formData.side === 'LONG' || formData.side === 'BUY';
-    const priceDiff = isLong ? (exit - entry) : (entry - exit);
-    const pnl_percent = ((priceDiff / entry) * 100).toFixed(2);
-
-    const symUpper = (formData.symbol || '').toUpperCase().replace('/', '').trim();
-    const isForexCategory = (formData.asset_class || '').toLowerCase() === 'forex' ||
-      /^(EUR|GBP|USD|JPY|AUD|CAD|CHF|NZD){2}$/.test(symUpper) ||
-      symUpper.startsWith('XAU') || symUpper.startsWith('XAG') ||
-      symUpper === 'GOLD' || symUpper === 'SILVER';
-
-    let pnl = 0;
-    if (isForexCategory) {
-      let lots = qty;
-      if (qty >= 500) {
-        lots = qty / 100000;
-      }
-
-      let contractSize = 100000;
-      if (symUpper.includes('XAU') || symUpper === 'GOLD') {
-        contractSize = 100;
-      } else if (symUpper.includes('XAG') || symUpper === 'SILVER') {
-        contractSize = 5000;
-      }
-
-      if (symUpper.endsWith('USD') || symUpper === 'GOLD' || symUpper === 'SILVER') {
-        pnl = priceDiff * lots * contractSize;
-      } else if (symUpper.startsWith('USD')) {
-        pnl = (priceDiff * lots * contractSize) / exit;
-      } else if (symUpper.endsWith('JPY')) {
-        const usdJpyEst = exit > 50 ? (exit / 1.30) : 150;
-        pnl = (priceDiff * lots * contractSize) / usdJpyEst;
-      } else if (symUpper.endsWith('GBP')) {
-        pnl = priceDiff * lots * contractSize * 1.28;
-      } else if (symUpper.endsWith('AUD')) {
-        pnl = priceDiff * lots * contractSize * 0.66;
-      } else if (symUpper.endsWith('CAD')) {
-        pnl = (priceDiff * lots * contractSize) / 1.36;
-      } else if (symUpper.endsWith('CHF')) {
-        pnl = (priceDiff * lots * contractSize) / 0.90;
-      } else if (symUpper.endsWith('NZD')) {
-        pnl = priceDiff * lots * contractSize * 0.60;
-      } else {
-        pnl = priceDiff * lots * contractSize;
-      }
-    } else {
-      pnl = priceDiff * qty;
-    }
+    const computed = calculateForexPnL(formData.symbol, formData.asset_class, formData.side, entry, exit, qty);
+    const pnl = computed.pnl;
+    const pnl_percent = computed.pnlPercent.toFixed(2);
 
     const isWin = pnl > 0.005;
     const isLoss = pnl < -0.005;
     const formattedPnL = Math.abs(pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const sign = pnl >= 0 ? '+' : '-';
+    const isForex = isForexCategory(formData.symbol, formData.asset_class);
 
     return {
       pnl,
@@ -221,7 +169,7 @@ export default function TradeModal({
       pnl_percent,
       isWin,
       isLoss,
-      isForexCategory
+      isForexCategory: isForex
     };
   };
 
@@ -249,12 +197,14 @@ export default function TradeModal({
   };
 
   const handleInlineCreateStrategy = async () => {
+    if (isSavingStrategy) return;
     const trimmed = inlineStrategyName.trim();
     if (!trimmed) {
       setInlineStrategyError('Strategy name is required.');
       return;
     }
     setInlineStrategyError('');
+    setIsSavingStrategy(true);
 
     try {
       const res = await fetch('/api/strategies', {
@@ -262,27 +212,32 @@ export default function TradeModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.strategies) {
-          setServerStrategies(data.strategies);
-        }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        setInlineStrategyError(errData.error || 'Failed to save strategy.');
+        return;
       }
-    } catch (err) {
-      console.warn('Failed to save strategy to backend API:', err);
-    }
+      const data = await res.json();
+      if (Array.isArray(data.strategies)) {
+        setServerStrategies(data.strategies);
+      }
 
-    try {
-      const updated = Array.from(new Set([...customStrategies, trimmed]));
-      localStorage.setItem('tp_custom_strategies', JSON.stringify(updated));
-      setCustomStrategies(updated);
-    } catch (err) {
-      console.warn('Failed to save strategy to localStorage:', err);
-    }
+      try {
+        const updated = Array.from(new Set([...customStrategies, trimmed]));
+        localStorage.setItem('tp_custom_strategies', JSON.stringify(updated));
+        setCustomStrategies(updated);
+      } catch (err) {
+        console.warn('Failed to save strategy to localStorage:', err);
+      }
 
-    setFormData((prev) => ({ ...prev, setup: trimmed }));
-    setIsCreatingInlineStrategy(false);
-    setInlineStrategyName('');
+      setFormData((prev) => ({ ...prev, setup: trimmed }));
+      setIsCreatingInlineStrategy(false);
+      setInlineStrategyName('');
+    } catch (err) {
+      setInlineStrategyError(err.message || 'Failed to save strategy.');
+    } finally {
+      setIsSavingStrategy(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -585,14 +540,14 @@ export default function TradeModal({
 
             <div className="form-group">
               <label className="form-label">
-                Position Size {formData.asset_class === 'Forex' ? '(Lots, e.g. 1.0, 0.1)' : '(Qty / Units)'}
+                Position Size {isForexCategory(formData.symbol, formData.asset_class) ? '(Lots, e.g. 1.0, 0.1)' : '(Qty / Units)'}
               </label>
               <input
                 type="number"
                 step="any"
                 name="quantity"
                 className="form-input font-mono"
-                placeholder={formData.asset_class === 'Forex' ? 'e.g. 1.0' : '1'}
+                placeholder={isForexCategory(formData.symbol, formData.asset_class) ? 'e.g. 1.0' : '1'}
                 value={formData.quantity}
                 onChange={handleChange}
               />
@@ -704,10 +659,11 @@ export default function TradeModal({
                     <button
                       type="button"
                       onClick={handleInlineCreateStrategy}
+                      disabled={isSavingStrategy}
                       className="btn btn-primary"
                       style={{ flex: 1, padding: '6px 10px', fontSize: '0.78rem', justifyContent: 'center' }}
                     >
-                      Save
+                      {isSavingStrategy ? 'Saving...' : 'Save'}
                     </button>
                     <button
                       type="button"
@@ -726,8 +682,8 @@ export default function TradeModal({
                   value={formData.setup}
                   onChange={handleChange}
                 >
-                  {allStrategies.map((strat, i) => (
-                    <option key={i} value={strat}>
+                  {allStrategies.map((strat) => (
+                    <option key={strat} value={strat}>
                       {strat}
                     </option>
                   ))}

@@ -6,6 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import db, { uploadsDir } from './db.js';
 import { parseMT5FileBuffer } from './mt5Parser.js';
+import { calculateForexPnL, isForexCategory } from '../src/utils/forex.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,9 +45,9 @@ const upload = multer({
 
 // Helper: Calculate PnL & Status with Forex lot size & contract size support
 function computeTradeMetrics(trade) {
-  let { symbol = '', asset_class = '', side, entry_price, exit_price, quantity = 1, status, pnl, pnl_percent } = trade;
+  let { symbol = '', asset_class = '', side, entry_price, exit_price, quantity = 1, status, pnl, pnl_percent, setup, notes } = trade;
   entry_price = parseFloat(entry_price);
-  exit_price = (exit_price !== undefined && exit_price !== null && exit_price !== '') ? parseFloat(exit_price) : null;
+  exit_price = (exit_date_has_val(exit_price)) ? parseFloat(exit_price) : null;
   quantity = parseFloat(quantity) || 1;
 
   if (exit_price !== null && !isNaN(exit_price) && !isNaN(entry_price) && entry_price > 0) {
@@ -56,54 +57,12 @@ function computeTradeMetrics(trade) {
     // Calculate percentage change of price
     pnl_percent = (priceDiff / entry_price) * 100;
 
-    const symUpper = (symbol || '').toUpperCase().replace('/', '').trim();
-    const isForexCategory = (asset_class || '').toLowerCase() === 'forex' ||
-      /^(EUR|GBP|USD|JPY|AUD|CAD|CHF|NZD){2}$/.test(symUpper) ||
-      symUpper.startsWith('XAU') || symUpper.startsWith('XAG') ||
-      symUpper === 'GOLD' || symUpper === 'SILVER';
-
-    if (isForexCategory) {
-      // For Forex/Metals:
-      // If quantity is < 500, quantity is entered as Lot size (e.g., 1.0, 0.1, 0.05).
-      // If quantity is >= 500, quantity is raw unit count (e.g., 100,000 units = 1 lot).
-      let lots = quantity;
-      if (quantity >= 500) {
-        lots = quantity / 100000;
-      }
-
-      let contractSize = 100000; // default for currency pairs (1 lot = 100,000 units)
-      if (symUpper.includes('XAU') || symUpper === 'GOLD') {
-        contractSize = 100; // 1 lot = 100 oz gold
-      } else if (symUpper.includes('XAG') || symUpper === 'SILVER') {
-        contractSize = 5000; // 1 lot = 5000 oz silver
-      }
-
-      if (symUpper.endsWith('USD') || symUpper === 'GOLD' || symUpper === 'SILVER') {
-        // Pairs where USD is quote currency (EURUSD, GBPUSD, AUDUSD, NZDUSD, XAUUSD, XAGUSD)
-        pnl = priceDiff * lots * contractSize;
-      } else if (symUpper.startsWith('USD')) {
-        // Pairs where USD is base currency (USDJPY, USDCAD, USDCHF)
-        pnl = (priceDiff * lots * contractSize) / exit_price;
-      } else if (symUpper.endsWith('JPY')) {
-        // JPY Cross pairs (EURJPY, GBPJPY, AUDJPY, CADJPY, CHFJPY, NZDJPY)
-        const usdJpyEst = exit_price > 50 ? (exit_price / 1.30) : 150;
-        pnl = (priceDiff * lots * contractSize) / usdJpyEst;
-      } else if (symUpper.endsWith('GBP')) {
-        pnl = priceDiff * lots * contractSize * 1.28;
-      } else if (symUpper.endsWith('AUD')) {
-        pnl = priceDiff * lots * contractSize * 0.66;
-      } else if (symUpper.endsWith('CAD')) {
-        pnl = (priceDiff * lots * contractSize) / 1.36;
-      } else if (symUpper.endsWith('CHF')) {
-        pnl = (priceDiff * lots * contractSize) / 0.90;
-      } else if (symUpper.endsWith('NZD')) {
-        pnl = priceDiff * lots * contractSize * 0.60;
-      } else {
-        pnl = priceDiff * lots * contractSize;
-      }
+    const isMT5Import = setup === 'MT5 Import' || (notes && String(notes).includes('MT5'));
+    if (isMT5Import && pnl !== undefined && pnl !== null && !isNaN(parseFloat(pnl))) {
+      pnl = parseFloat(pnl);
     } else {
-      // Non-Forex (Crypto, Stocks, Futures)
-      pnl = priceDiff * quantity;
+      const computed = calculateForexPnL(symbol, asset_class, side, entry_price, exit_price, quantity);
+      pnl = computed.pnl;
     }
 
     if (Math.abs(pnl) < 0.01) {
@@ -124,6 +83,10 @@ function computeTradeMetrics(trade) {
     pnl_percent: Math.round(pnl_percent * 100) / 100,
     status,
   };
+}
+
+function exit_date_has_val(val) {
+  return val !== undefined && val !== null && val !== '';
 }
 
 // REST API ENDPOINTS
@@ -197,6 +160,10 @@ app.post('/api/strategies', (req, res) => {
     }
 
     const trimmedName = name.trim();
+    if (trimmedName.length > 50) {
+      return res.status(400).json({ error: 'Strategy name cannot exceed 50 characters.' });
+    }
+
     const strategies = db.addStrategy ? db.addStrategy(trimmedName) : [];
     res.status(201).json({
       success: true,

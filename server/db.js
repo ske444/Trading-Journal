@@ -334,9 +334,15 @@ const db = {
       store.strategies = [];
     }
     const cleanName = name.trim();
-    if (cleanName && !store.strategies.includes(cleanName)) {
-      store.strategies.push(cleanName);
-      saveStore(store);
+    if (cleanName) {
+      const existing = this.getStrategies();
+      const existsCaseInsensitive = existing.some(
+        (s) => s.toLowerCase() === cleanName.toLowerCase()
+      );
+      if (!existsCaseInsensitive) {
+        store.strategies.push(cleanName);
+        saveStore(store);
+      }
     }
     return this.getStrategies();
   },

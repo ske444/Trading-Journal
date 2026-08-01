@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { demoDailySeries } from '../constants/analyticsDefaults.js';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -348,12 +349,14 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
   // Growth Curve Data & Score history over time
   const INITIAL_BALANCE = Number(initialBalance) || 10000;
 
-  const closedTrades = trades.filter(t => t.status !== 'OPEN');
-  const sortedClosedTrades = [...closedTrades].sort((a, b) => {
-    const dA = new Date(a.exit_date || a.entry_date || 0).getTime();
-    const dB = new Date(b.exit_date || b.entry_date || 0).getTime();
-    return dA - dB || a.id - b.id;
-  });
+  const closedTrades = useMemo(() => (trades || []).filter(t => t.status !== 'OPEN'), [trades]);
+  const sortedClosedTrades = useMemo(() => {
+    return [...closedTrades].sort((a, b) => {
+      const dA = new Date(a.exit_date || a.entry_date || 0).getTime();
+      const dB = new Date(b.exit_date || b.entry_date || 0).getTime();
+      return dA - dB || a.id - b.id;
+    });
+  }, [closedTrades]);
 
   let growthCurveData = [];
 
@@ -560,12 +563,12 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
   const rawShortCount = shortStats?.total || 0;
   const hasSideData = (rawLongCount + rawShortCount) > 0;
 
-  const displayLongCount = hasSideData ? rawLongCount : 243;
-  const displayShortCount = hasSideData ? rawShortCount : 284;
+  const displayLongCount = hasSideData ? rawLongCount : 0;
+  const displayShortCount = hasSideData ? rawShortCount : 0;
   const totalBiasCount = displayLongCount + displayShortCount;
 
-  const bullPercent = totalBiasCount > 0 ? Math.round((displayLongCount / totalBiasCount) * 100) : 50;
-  const bearPercent = 100 - bullPercent;
+  const bullPercent = totalBiasCount > 0 ? Math.round((displayLongCount / totalBiasCount) * 100) : 0;
+  const bearPercent = totalBiasCount > 0 ? (100 - bullPercent) : 0;
 
   const isBearDominant = bearPercent > bullPercent;
   const biasImage = isBearDominant ? bearImg : bullImg;
@@ -679,7 +682,7 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
           if (rawDateStr) {
             const d = new Date(rawDateStr);
             if (!isNaN(d.getTime())) {
-              const hr = d.getHours();
+              const hr = d.getUTCHours();
               if (hr >= 13 && hr < 21) {
                 matchedSession = 'New York';
               } else if (hr >= 7 && hr < 16) {
@@ -896,70 +899,6 @@ export default function AnalyticsView({ stats, trades = [], initialBalance = 100
         });
       }
     }
-
-    // Default reference fallback dataset matching user reference image
-    const demoDailySeries = [
-      { rawDate: '2026-01-05', date: '01/05/26', pnl: -100000, tradeCount: 3 },
-      { rawDate: '2026-01-08', date: '01/08/26', pnl: 25000, tradeCount: 2 },
-      { rawDate: '2026-01-12', date: '01/12/26', pnl: 38000, tradeCount: 4 },
-      { rawDate: '2026-01-16', date: '01/16/26', pnl: -98000, tradeCount: 2 },
-      { rawDate: '2026-01-20', date: '01/20/26', pnl: 65000, tradeCount: 5 },
-      { rawDate: '2026-01-23', date: '01/23/26', pnl: -165000, tradeCount: 3 },
-      { rawDate: '2026-01-27', date: '01/27/26', pnl: 85000, tradeCount: 4 },
-      { rawDate: '2026-01-30', date: '01/30/26', pnl: 55000, tradeCount: 2 },
-      { rawDate: '2026-02-03', date: '02/03/26', pnl: 84000, tradeCount: 3 },
-      { rawDate: '2026-02-06', date: '02/06/26', pnl: 8000, tradeCount: 1 },
-      { rawDate: '2026-02-10', date: '02/10/26', pnl: -22000, tradeCount: 2 },
-      { rawDate: '2026-02-13', date: '02/13/26', pnl: 45000, tradeCount: 3 },
-      { rawDate: '2026-02-17', date: '02/17/26', pnl: 48000, tradeCount: 4 },
-      { rawDate: '2026-02-20', date: '02/20/26', pnl: 52000, tradeCount: 3 },
-      { rawDate: '2026-02-24', date: '02/24/26', pnl: 60000, tradeCount: 4 },
-      { rawDate: '2026-02-27', date: '02/27/26', pnl: 4000, tradeCount: 1 },
-      { rawDate: '2026-03-03', date: '03/03/26', pnl: -52000, tradeCount: 2 },
-      { rawDate: '2026-03-06', date: '03/06/26', pnl: 25000, tradeCount: 2 },
-      { rawDate: '2026-03-10', date: '03/10/26', pnl: 18000, tradeCount: 3 },
-      { rawDate: '2026-03-13', date: '03/13/26', pnl: 172000, tradeCount: 6 },
-      { rawDate: '2026-03-17', date: '03/17/26', pnl: 148000, tradeCount: 5 },
-      { rawDate: '2026-03-20', date: '03/20/26', pnl: 130000, tradeCount: 4 },
-      { rawDate: '2026-03-25', date: '03/25/26', pnl: 138000, tradeCount: 5 },
-      { rawDate: '2026-03-28', date: '03/28/26', pnl: 110000, tradeCount: 4 },
-      { rawDate: '2026-04-01', date: '04/01/26', pnl: 24000, tradeCount: 2 },
-      { rawDate: '2026-04-04', date: '04/04/26', pnl: -135000, tradeCount: 3 },
-      { rawDate: '2026-04-08', date: '04/08/26', pnl: -78000, tradeCount: 2 },
-      { rawDate: '2026-04-12', date: '04/12/26', pnl: 72000, tradeCount: 3 },
-      { rawDate: '2026-04-15', date: '04/15/26', pnl: 30000, tradeCount: 2 },
-      { rawDate: '2026-04-18', date: '04/18/26', pnl: -3000, tradeCount: 1 },
-      { rawDate: '2026-04-22', date: '04/22/26', pnl: -195000, tradeCount: 4 },
-      { rawDate: '2026-04-25', date: '04/25/26', pnl: -104000, tradeCount: 3 },
-      { rawDate: '2026-04-30', date: '04/30/26', pnl: -58000, tradeCount: 2 },
-      { rawDate: '2026-05-04', date: '05/04/26', pnl: 58000, tradeCount: 3 },
-      { rawDate: '2026-05-08', date: '05/08/26', pnl: 100000, tradeCount: 4 },
-      { rawDate: '2026-05-12', date: '05/12/26', pnl: -88000, tradeCount: 3 },
-      { rawDate: '2026-05-15', date: '05/15/26', pnl: 34000, tradeCount: 2 },
-      { rawDate: '2026-05-19', date: '05/19/26', pnl: 34000, tradeCount: 2 },
-      { rawDate: '2026-05-22', date: '05/22/26', pnl: 46000, tradeCount: 3 },
-      { rawDate: '2026-05-26', date: '05/26/26', pnl: 72000, tradeCount: 4 },
-      { rawDate: '2026-05-29', date: '05/29/26', pnl: -53000, tradeCount: 2 },
-      { rawDate: '2026-06-02', date: '06/02/26', pnl: -32000, tradeCount: 2 },
-      { rawDate: '2026-06-06', date: '06/06/26', pnl: 85000, tradeCount: 3 },
-      { rawDate: '2026-06-10', date: '06/10/26', pnl: 15000, tradeCount: 1 },
-      { rawDate: '2026-06-13', date: '06/13/26', pnl: -70000, tradeCount: 3 },
-      { rawDate: '2026-06-17', date: '06/17/26', pnl: 14000, tradeCount: 2 },
-      { rawDate: '2026-06-20', date: '06/20/26', pnl: 42000, tradeCount: 3 },
-      { rawDate: '2026-06-24', date: '06/24/26', pnl: 102000, tradeCount: 4 },
-      { rawDate: '2026-06-28', date: '06/28/26', pnl: -40000, tradeCount: 2 },
-      { rawDate: '2026-07-02', date: '07/02/26', pnl: 59000, tradeCount: 3 },
-      { rawDate: '2026-07-06', date: '07/06/26', pnl: 15000, tradeCount: 2 },
-      { rawDate: '2026-07-10', date: '07/10/26', pnl: -113000, tradeCount: 3 },
-      { rawDate: '2026-07-14', date: '07/14/26', pnl: 16000, tradeCount: 2 },
-      { rawDate: '2026-07-18', date: '07/18/26', pnl: 58000, tradeCount: 3 },
-      { rawDate: '2026-07-21', date: '07/21/26', pnl: 52000, tradeCount: 3 },
-      { rawDate: '2026-07-24', date: '07/24/26', pnl: -142000, tradeCount: 4 },
-      { rawDate: '2026-07-27', date: '07/27/26', pnl: -72000, tradeCount: 3 },
-      { rawDate: '2026-07-29', date: '07/29/26', pnl: 67000, tradeCount: 3 },
-      { rawDate: '2026-07-30', date: '07/30/26', pnl: 31000, tradeCount: 2 },
-      { rawDate: '2026-07-31', date: '07/31/26', pnl: 27000, tradeCount: 2 },
-    ];
     return demoDailySeries;
   }, [sortedClosedTrades]);
 

@@ -164,7 +164,7 @@ export default function MT5UploadModal({ isOpen, onClose, onImportSuccess, activ
         alignItems: 'center',
         justifyContent: 'center',
         padding: '20px',
-        animation: 'fadeIn 0.2s ease-out',
+        animation: 'fade-in 0.2s ease-out',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
